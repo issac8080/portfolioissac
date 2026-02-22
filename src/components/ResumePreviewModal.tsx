@@ -151,29 +151,29 @@ export default function ResumePreviewModal({
               }}
             >
               <h1 style={titleStyle}>{data.name}</h1>
-              <p style={{ margin: "0 0 8px 0", ...resumePreviewStyles }}>
+              <p style={{ ...resumePreviewStyles, margin: "0 0 8px 0" }}>
                 {[data.contact.email, data.contact.phone, data.contact.linkedin, data.contact.location]
                   .filter(Boolean)
                   .join(" | ")}
               </p>
 
               <h2 style={sectionTitleStyle}>SUMMARY</h2>
-              <p style={{ margin: "0 0 6px 0", ...resumePreviewStyles }}>
+              <p style={{ ...resumePreviewStyles, margin: "0 0 6px 0" }}>
                 {data.summary}
               </p>
 
               <h2 style={sectionTitleStyle}>SKILLS</h2>
-              <p style={{ margin: "0 0 6px 0", ...resumePreviewStyles }}>
+              <p style={{ ...resumePreviewStyles, margin: "0 0 6px 0" }}>
                 {data.skills.join(". ")}
               </p>
 
               <h2 style={sectionTitleStyle}>EXPERIENCE</h2>
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: "6px" }}>
-                  <p style={{ fontWeight: 700, margin: "0 0 2px 0", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, fontWeight: 700, margin: "0 0 2px 0" }}>
                     {exp.role} — {exp.company}
                   </p>
-                  <p style={{ margin: "0 0 4px 0", paddingLeft: "1em", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, margin: "0 0 4px 0", paddingLeft: "1em" }}>
                     • {exp.text}
                   </p>
                 </div>
@@ -182,10 +182,10 @@ export default function ResumePreviewModal({
               <h2 style={sectionTitleStyle}>PROJECTS</h2>
               {data.projects.map((proj, i) => (
                 <div key={i} style={{ marginBottom: "6px" }}>
-                  <p style={{ fontWeight: 700, margin: "0 0 2px 0", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, fontWeight: 700, margin: "0 0 2px 0" }}>
                     {proj.title}
                   </p>
-                  <p style={{ margin: "0 0 4px 0", paddingLeft: "1em", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, margin: "0 0 4px 0", paddingLeft: "1em" }}>
                     • {proj.text}
                   </p>
                 </div>
@@ -196,10 +196,10 @@ export default function ResumePreviewModal({
                   <h2 style={sectionTitleStyle}>RESEARCH / PUBLICATION</h2>
                   {data.research.map((r, i) => (
                     <div key={i} style={{ marginBottom: "6px" }}>
-                      <p style={{ fontWeight: 700, margin: "0 0 2px 0", ...resumePreviewStyles }}>
+                      <p style={{ ...resumePreviewStyles, fontWeight: 700, margin: "0 0 2px 0" }}>
                         {r.title}
                       </p>
-                      <p style={{ margin: "0 0 4px 0", paddingLeft: "1em", ...resumePreviewStyles }}>
+                      <p style={{ ...resumePreviewStyles, margin: "0 0 4px 0", paddingLeft: "1em" }}>
                         • {r.text}
                       </p>
                     </div>
@@ -210,10 +210,10 @@ export default function ResumePreviewModal({
               <h2 style={sectionTitleStyle}>EDUCATION</h2>
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: "6px" }}>
-                  <p style={{ fontWeight: 700, margin: "0 0 2px 0", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, fontWeight: 700, margin: "0 0 2px 0" }}>
                     {edu.name}
                   </p>
-                  <p style={{ margin: "0 0 4px 0", paddingLeft: "1em", ...resumePreviewStyles }}>
+                  <p style={{ ...resumePreviewStyles, margin: "0 0 4px 0", paddingLeft: "1em" }}>
                     • {edu.text}
                   </p>
                 </div>

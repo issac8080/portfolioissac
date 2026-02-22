@@ -428,7 +428,7 @@ function parseSections(content: string): { title: string; body: string }[] {
   const sections: { title: string; body: string }[] = [];
   const parts = content.split(/\n\n---\n\n/);
   for (const part of parts) {
-    const match = part.match(/^\*\*(.+?)\*\*\n\n?(.*)/s);
+    const match = part.match(/^\*\*(.+?)\*\*\n\n?([\s\S]*)/);
     if (match) {
       sections.push({ title: match[1].trim(), body: match[2].trim() });
     } else if (part.trim()) {

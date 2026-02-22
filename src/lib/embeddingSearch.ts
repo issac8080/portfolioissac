@@ -167,11 +167,11 @@ export function formatReplyStructured(results: SearchResult[]): string {
   }
 
   const sections: string[] = [];
-  for (const [source, list] of bySource) {
+  bySource.forEach((list, source) => {
     const texts = list.map((r) => r.chunk.text);
-    const combined = [...new Set(texts)].join(" ");
+    const combined = Array.from(new Set(texts)).join(" ");
     sections.push(`**${source}**\n\nOverview\n${combined}`);
-  }
+  });
 
   return sections.join("\n\n---\n\n");
 }
