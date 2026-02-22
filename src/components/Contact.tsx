@@ -2,12 +2,20 @@
 
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { Mail, Phone, Linkedin } from "lucide-react";
+import { Mail, Phone, Linkedin, FileText, Download } from "lucide-react";
 import { contact } from "@/data/portfolio";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function ContactSection() {
+type ContactSectionProps = {
+  onPreviewResume?: () => void;
+  onDownloadResume?: () => void;
+};
+
+export default function ContactSection({
+  onPreviewResume,
+  onDownloadResume,
+}: ContactSectionProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -93,6 +101,32 @@ export default function ContactSection() {
               <span className="text-white">LinkedIn — issac-sunny</span>
             </a>
           </div>
+
+          {(onPreviewResume ?? onDownloadResume) && (
+            <div className="flex flex-wrap gap-3 mb-6 pb-6 border-b border-ai-border/60">
+              {onPreviewResume && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onPreviewResume}
+                  className="flex items-center gap-2 border-ai-border text-white hover:bg-ai-surface hover:border-ai-glow/40"
+                >
+                  <FileText className="w-4 h-4" />
+                  Preview Resume
+                </Button>
+              )}
+              {onDownloadResume && (
+                <Button
+                  type="button"
+                  onClick={onDownloadResume}
+                  className="flex items-center gap-2 bg-ai-glow/20 text-ai-glow border border-ai-glow/40 hover:bg-ai-glow/30"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Resume
+                </Button>
+              )}
+            </div>
+          )}
 
           <div className="space-y-4">
             <MagneticInput placeholder="Your name" type="text" />

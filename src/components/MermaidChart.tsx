@@ -36,33 +36,41 @@ export default function MermaidChart({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     const code = projectMermaidDiagrams[projectId];
-    if (!code || !containerRef.current) {
+    if (!code) {
       setSvg(null);
+      setError(null);
       return;
     }
 
     let cancelled = false;
-    const id = `mermaid-${projectId}-${Date.now()}`;
+    const id = `mermaid-${projectId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     mermaid.initialize({
       startOnLoad: false,
       ...MERMAID_DARK,
     });
 
-    mermaid
-      .render(id, code)
-      .then(({ svg: result }) => {
-        if (!cancelled) {
-          setSvg(result);
-          setError(null);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(String(err?.message ?? err));
-          setSvg(null);
-        }
-      });
+    const run = () => {
+      mermaid
+        .render(id, code)
+        .then(({ svg: result }) => {
+          if (!cancelled) {
+            setSvg(result);
+            setError(null);
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setError(String(err?.message ?? err));
+            setSvg(null);
+          }
+        });
+    };
+
+    requestAnimationFrame(() => {
+      if (cancelled) return;
+      run();
+    });
 
     return () => {
       cancelled = true;

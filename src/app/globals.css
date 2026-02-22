@@ -280,6 +280,59 @@ body {
   transform: scale(0.92);
 }
 
+/* ===== Projects horizontal scroll ===== */
+.scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+.projects-scroll-container {
+  padding-inline: 2rem;
+  scroll-padding-inline: 2rem;
+  -webkit-overflow-scrolling: touch;
+}
+.projects-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+.projects-scroll-container::-webkit-scrollbar-track {
+  background: rgba(15, 15, 25, 0.5);
+  border-radius: 3px;
+}
+.projects-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.3);
+  border-radius: 3px;
+}
+.projects-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 136, 0.5);
+}
+.projects-cards-strip {
+  perspective: 1200px;
+}
+.project-card {
+  scroll-snap-align: center;
+  transform-origin: center center;
+}
+/* Fade masks so cards don't abruptly end at edges */
+.projects-fade-mask {
+  width: 3rem;
+  max-width: 80px;
+}
+.projects-fade-left {
+  background: linear-gradient(
+    to right,
+    var(--ai-bg) 0%,
+    rgba(10, 10, 15, 0.97) 40%,
+    transparent 100%
+  );
+}
+.projects-fade-right {
+  background: linear-gradient(
+    to left,
+    var(--ai-bg) 0%,
+    rgba(10, 10, 15, 0.97) 40%,
+    transparent 100%
+  );
+}
+
 /* ===== Experience honeycomb grid ===== */
 .experience-honeycomb {
   --hex-w: 120px;

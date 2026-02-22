@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 const links = [
   { href: "#hero", label: "Home" },
   { href: "#projects", label: "Projects" },
+  { href: "#games", label: "Games" },
   { href: "#featured-systems", label: "Systems" },
   { href: "#experience", label: "Experience" },
   { href: "#research", label: "Research" },
@@ -156,7 +157,12 @@ function NavItemDesktop({
   );
 }
 
-export default function Nav() {
+type NavProps = {
+  onPreviewResume?: () => void;
+  onDownloadResume?: () => void;
+};
+
+export default function Nav({ onPreviewResume, onDownloadResume }: NavProps = {}) {
   const activeId = useActiveSection();
   const { isShrunk, blurAmount, bgOpacity } = useScrollDockState();
   const parallax = useMouseParallax();
@@ -225,6 +231,29 @@ export default function Nav() {
                   onNavigate={() => scrollToSection(link.href)}
                 />
               ))}
+              {(onPreviewResume ?? onDownloadResume) && (
+                <>
+                  <span className="h-4 w-px bg-ai-border/60 shrink-0" aria-hidden />
+                  {onPreviewResume && (
+                    <button
+                      type="button"
+                      onClick={onPreviewResume}
+                      className="text-xs font-medium text-ai-muted hover:text-white hover:text-ai-glow transition-colors shrink-0 py-2 px-3 rounded-lg"
+                    >
+                      Preview Resume
+                    </button>
+                  )}
+                  {onDownloadResume && (
+                    <button
+                      type="button"
+                      onClick={onDownloadResume}
+                      className="text-xs font-medium text-ai-muted hover:text-white hover:text-ai-glow transition-colors shrink-0 py-2 px-3 rounded-lg"
+                    >
+                      Download Resume
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </motion.nav>
         </div>

@@ -18,12 +18,17 @@ import AnimatedGrid from "@/components/background/AnimatedGrid";
 import DepthFog from "@/components/background/DepthFog";
 import PortfolioChatbot from "@/components/PortfolioChatbot";
 import ProjectModal from "@/components/ProjectModal";
+import GamesPlaygroundSection from "@/components/GamesPlayground/GamesPlaygroundSection";
+import ResumePreviewModal from "@/components/ResumePreviewModal";
 import type { CaseStudy } from "@/data/caseStudies";
 
 export default function Home() {
   const [bootComplete, setBootComplete] = useState(false);
   const [selectedProject, setSelectedProject] = useState<CaseStudy | null>(null);
   const projectModalOpen = !!selectedProject;
+  const [gamesModalOpen, setGamesModalOpen] = useState(false);
+  const [resumePreviewOpen, setResumePreviewOpen] = useState(false);
+  const anyModalOpen = projectModalOpen || gamesModalOpen;
 
   useEffect(() => {
     if (projectModalOpen) {
@@ -51,10 +56,10 @@ export default function Home() {
         <>
           <main
             className={`relative min-h-screen bg-ai-bg text-white transition-[filter,pointer-events] duration-300 ${
-              projectModalOpen ? "pointer-events-none select-none" : ""
+              anyModalOpen ? "pointer-events-none select-none" : ""
             }`}
             style={{
-              filter: projectModalOpen ? "blur(8px)" : "none",
+              filter: anyModalOpen ? "blur(8px)" : "none",
             }}
           >
             <div className="absolute inset-0 z-0">
@@ -62,10 +67,16 @@ export default function Home() {
             </div>
             <DepthFog />
             <MouseGradientLight />
-            <ScrollEffects modalOpen={projectModalOpen} />
-            <Nav />
+            <ScrollEffects modalOpen={anyModalOpen} />
+            <Nav
+              onPreviewResume={() => setResumePreviewOpen(true)}
+              onDownloadResume={() => import("@/lib/generateResumePdf").then((m) => m.downloadResumePdf())}
+            />
             <Hero />
             <ProjectsShowcase onSelectProject={setSelectedProject} />
+            <GamesPlaygroundSection
+              onGameModalOpenChange={setGamesModalOpen}
+            />
             <section data-cinematic-reveal className="relative py-24 md:py-32">
               <FeaturedSystems />
             </section>
@@ -82,7 +93,10 @@ export default function Home() {
               <LeadershipSection />
             </section>
             <section data-cinematic-reveal className="relative py-24 md:py-32 pb-24">
-              <ContactSection />
+              <ContactSection
+              onPreviewResume={() => setResumePreviewOpen(true)}
+              onDownloadResume={() => import("@/lib/generateResumePdf").then((m) => m.downloadResumePdf())}
+            />
             </section>
           </main>
 
@@ -91,7 +105,12 @@ export default function Home() {
             onClose={() => setSelectedProject(null)}
           />
 
-          <PortfolioChatbot />
+          <ResumePreviewModal
+            open={resumePreviewOpen}
+            onOpenChange={setResumePreviewOpen}
+          />
+
+          <PortfolioChatbot currentProjectId={selectedProject?.id ?? null} />
         </>
       )}
     </>
