@@ -1,0 +1,331 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ai-bg: #0a0a0f;
+  --ai-surface: rgba(15, 15, 25, 0.7);
+  --ai-border: rgba(0, 255, 136, 0.2);
+  --ai-glow: #00ff88;
+  --ai-accent: #00d4ff;
+  --ai-muted: #6b7280;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--ai-bg);
+  color: #e5e7eb;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Noise overlay - procedural */
+.noise-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Glassmorphism base */
+.glass {
+  background: rgba(15, 15, 25, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+}
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+  background: var(--ai-bg);
+  border-radius: 1rem;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--ai-glow), var(--ai-accent), var(--ai-glow));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: border-glow 3s ease-in-out infinite;
+}
+@keyframes border-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* GPU-friendly transforms */
+.gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 15, 25, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 136, 0.5);
+}
+
+/* Card elevation - futuristic hover shadow */
+.card-elevation {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-elevation:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 20px 40px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 255, 136, 0.1),
+    0 0 60px -10px rgba(0, 255, 136, 0.25);
+}
+
+/* Shadow-only elevation for elements that use transform (e.g. 3D tilt cards) */
+.card-elevation-shadow {
+  transition: box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-elevation-shadow:hover {
+  box-shadow:
+    0 20px 40px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 255, 136, 0.1),
+    0 0 60px -10px rgba(0, 255, 136, 0.25);
+}
+
+/* ===== AI Command Dock (layout-constrained floating) ===== */
+.command-dock {
+  position: relative;
+  border-radius: 1rem;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 255, 136, 0.15),
+    0 0 40px -8px rgba(0, 255, 136, 0.2);
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.command-dock-constrained {
+  width: max-content;
+  max-width: 100%;
+}
+
+/* Single row: scroll horizontally on small desktop instead of wrapping */
+.command-dock-nav-row {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 136, 0.3) transparent;
+}
+.command-dock-nav-row::-webkit-scrollbar {
+  height: 4px;
+}
+.command-dock-nav-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+.command-dock-nav-row::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.3);
+  border-radius: 2px;
+}
+
+.command-dock:hover {
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 255, 136, 0.25),
+    0 0 50px -6px rgba(0, 255, 136, 0.3);
+}
+
+.command-dock-border {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    var(--ai-glow),
+    var(--ai-accent),
+    var(--ai-glow)
+  );
+  background-size: 200% 200%;
+  animation: command-dock-border-flow 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes command-dock-border-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.command-dock-noise {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.command-dock-item {
+  position: relative;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Active pill: absolute relative to nav item, directly under label */
+.command-dock-active-pill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 136, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: command-dock-pill-shine 2.5s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
+  pointer-events: none;
+}
+
+@keyframes command-dock-pill-shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.command-dock-underline-trail {
+  position: absolute;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ai-glow),
+    transparent
+  );
+  box-shadow: 0 0 10px var(--ai-glow);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.command-dock-text-glow {
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.command-dock-fab {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.command-dock-fab:active {
+  transform: scale(0.96);
+}
+
+.command-dock-radial-item {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.command-dock-radial-item:active {
+  transform: scale(0.92);
+}
+
+/* ===== Experience honeycomb grid ===== */
+.experience-honeycomb {
+  --hex-w: 120px;
+  --hex-h: calc(120px * 1.732);
+  --hex-gap: 12px;
+}
+@media (max-width: 767px) {
+  .experience-honeycomb {
+    --hex-w: 100px;
+    --hex-h: calc(100px * 1.732);
+    --hex-gap: 10px;
+  }
+}
+.experience-hex-card {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.experience-hex-wrap {
+  min-width: 0;
+}
+
+/* Mermaid charts in project modal — dark theme, animated edges */
+.mermaid-chart svg {
+  max-width: 100%;
+  height: auto;
+}
+.mermaid-chart .edgePath path {
+  stroke: rgba(0, 212, 255, 0.6);
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+  animation: mermaid-edge-draw 1.2s ease-out forwards;
+}
+@keyframes mermaid-edge-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mermaid-chart .node rect,
+.mermaid-chart .node circle {
+  fill: rgba(15, 15, 25, 0.95);
+  stroke: rgba(0, 255, 136, 0.35);
+}
+.mermaid-chart .node text {
+  fill: #e5e7eb;
+}
