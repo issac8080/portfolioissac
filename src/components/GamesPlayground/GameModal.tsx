@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { GameId } from "@/data/gamesData";
@@ -36,7 +37,7 @@ export default function GameModal({
 
   if (!gameId) return null;
 
-  return (
+  const modalContent = (
     <AnimatePresence mode="wait">
       <motion.div
         initial={{ opacity: 0 }}
@@ -80,4 +81,7 @@ export default function GameModal({
       </motion.div>
     </AnimatePresence>
   );
+
+  // Portal to document.body so the modal renders outside the blurred <main> (fixes production blur issue)
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;
 }
