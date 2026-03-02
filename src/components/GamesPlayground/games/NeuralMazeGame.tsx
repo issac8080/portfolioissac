@@ -64,7 +64,7 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
       setMoves((m) => m + 1);
       if (nr === END[0] && nc === END[1]) {
         setWon(true);
-        const score = Math.max(10, 200 - moves);
+        const score = Math.max(10, 200 - (moves + 1));
         onScore?.(score);
       }
     },

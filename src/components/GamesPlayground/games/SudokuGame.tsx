@@ -54,14 +54,15 @@ function generatePuzzle(): { grid: number[][]; solution: number[][] } {
 }
 
 export default function SudokuGame({ onScore }: { onScore?: (score: number) => void }) {
-  const { grid: initialGrid, solution } = useMemo(() => generatePuzzle(), []);
-  const [grid, setGrid] = useState(() => initialGrid.map((row) => [...row]));
+  const initial = useMemo(() => generatePuzzle(), []);
+  const [grid, setGrid] = useState(() => initial.grid.map((row) => [...row]));
+  const [solution, setSolution] = useState(() => initial.solution.map((row) => [...row]));
+  const [fixed, setFixed] = useState(() =>
+    initial.grid.map((row, r) => row.map((v, c) => v !== 0))
+  );
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [mistakes, setMistakes] = useState(0);
   const [solved, setSolved] = useState(false);
-  const [fixed] = useState(() =>
-    initialGrid.map((row, r) => row.map((v, c) => v !== 0))
-  );
 
   const checkWin = useCallback(() => {
     for (let r = 0; r < N; r++)
@@ -89,8 +90,10 @@ export default function SudokuGame({ onScore }: { onScore?: (score: number) => v
   );
 
   const newPuzzle = () => {
-    const { grid: g } = generatePuzzle();
+    const { grid: g, solution: sol } = generatePuzzle();
     setGrid(g.map((row) => [...row]));
+    setSolution(sol.map((row) => [...row]));
+    setFixed(g.map((row, r) => row.map((v, c) => v !== 0)));
     setMistakes(0);
     setSolved(false);
     setSelected(null);
