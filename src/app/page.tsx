@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
@@ -16,11 +17,16 @@ import BootScreen from "@/components/BootScreen";
 import MouseGradientLight from "@/components/MouseGradientLight";
 import AnimatedGrid from "@/components/background/AnimatedGrid";
 import DepthFog from "@/components/background/DepthFog";
-import PortfolioChatbot from "@/components/PortfolioChatbot";
-import ProjectModal from "@/components/ProjectModal";
-import GamesPlaygroundSection from "@/components/GamesPlayground/GamesPlaygroundSection";
-import ResumePreviewModal from "@/components/ResumePreviewModal";
 import type { CaseStudy } from "@/data/caseStudies";
+
+const GamesPlaygroundSection = dynamic(
+  () => import("@/components/GamesPlayground/GamesPlaygroundSection"),
+  { ssr: true, loading: () => <section id="games" className="relative py-24 md:py-32 min-h-[200px]" /> }
+);
+
+const ProjectModal = dynamic(() => import("@/components/ProjectModal"), { ssr: false });
+const ResumePreviewModal = dynamic(() => import("@/components/ResumePreviewModal"), { ssr: false });
+const PortfolioChatbot = dynamic(() => import("@/components/PortfolioChatbot"), { ssr: false });
 
 export default function Home() {
   const [bootComplete, setBootComplete] = useState(false);

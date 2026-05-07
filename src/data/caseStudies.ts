@@ -53,7 +53,7 @@ export const caseStudies: CaseStudy[] = [
     productTitle: "AuraShop",
     tagline: "AI-Powered Personalized E-Commerce Assistant",
     category: "AI E-Commerce",
-    tech: ["FastAPI", "Next.js 14", "OpenAI GPT-4o-mini", "Session tracking"],
+    tech: ["Next.js", "FastAPI", "OpenAI API", "Tailwind CSS", "REST APIs", "Session tracking"],
     problemStatement:
       "E-commerce conversion drops when shoppers cannot quickly compare options or get personalized guidance. Generic recommendations and static filters do not reflect in-session intent, and in-store pickup workflows often lack digital verification.",
     systemArchitecture:
@@ -84,7 +84,7 @@ export const caseStudies: CaseStudy[] = [
     productTitle: "Code Dependency & Impact Analyzer",
     tagline: "Static Analysis for Change Risk and Blast Radius",
     category: "Developer Tools",
-    tech: ["Python", "AST", "Static analysis", "Graph computation"],
+    tech: ["Python", "AST", "NetworkX", "Graph algorithms", "Static analysis"],
     problemStatement:
       "Refactors and feature work in large codebases carry hidden risk: a small change can break distant modules. Teams lack quantified blast radius and risk scores, leading to over-testing or under-testing and delayed releases.",
     systemArchitecture:
@@ -145,7 +145,7 @@ export const caseStudies: CaseStudy[] = [
     productTitle: "Autonomous Returns & Exchange Resolution System",
     tagline: "Multi-Agent AI for Policy-Based Resolution",
     category: "AI Operations",
-    tech: ["FastAPI", "LangGraph", "GPT-4o Vision", "SentenceTransformers", "ChromaDB"],
+    tech: ["FastAPI", "LangGraph", "GPT-4o Vision", "React", "ChromaDB", "SentenceTransformers", "RAG"],
     problemStatement:
       "Returns and exchanges tie up support teams and create inconsistency when humans interpret policy and product condition subjectively. Scaling requires automated, policy-grounded decisions with clear audit trails.",
     systemArchitecture:
@@ -174,6 +174,210 @@ export const caseStudies: CaseStudy[] = [
     github: null,
     link: null,
     featured: true,
+  },
+  {
+    id: "expenze",
+    productTitle: "Expenze",
+    tagline: "Expense Tracker with WhatsApp AI Chatbot",
+    category: "FinTech & Chatbots",
+    tech: ["WhatsApp Business API", "AI chatbot", "Backend APIs", "NLP", "Web dashboard"],
+    problemStatement:
+      "Manual expense entry in apps causes friction and abandoned habits. Users already live in messaging apps; disconnected finance UIs slow adoption and reduce visibility into spending patterns.",
+    systemArchitecture:
+      "WhatsApp webhook receives inbound messages; backend parses intent and structured amounts, categories, and dates. Persistence layer stores transactions and aggregates; dashboard surfaces history, budgets, and AI-generated summaries. Optional voice or media flows normalize to the same expense schema.",
+    aiWorkflow:
+      "Conversational NLP classifies user messages into expense events (amount, merchant, category, date). Ambiguity triggers clarifying prompts in-thread. Periodic digest jobs generate natural-language spending summaries and anomaly hints from rolling aggregates.",
+    engineeringContribution:
+      "Integrated WhatsApp with backend services for conversational logging, categorization, and summary generation. Built responsive web UI for review and analytics alongside chat-first capture.",
+    businessImpact:
+      "Lower friction increases logging consistency; categorization and summaries improve financial awareness without dedicated app sessions.",
+    realWorldUseCase:
+      "A user texts “Uber 320 food yesterday” on WhatsApp; the bot confirms category and stores the line item. End of week they receive an AI summary of top categories and trends.",
+    keyFeatures: [
+      "WhatsApp-first expense capture",
+      "AI categorization and spending insights",
+      "Responsive web dashboard",
+      "Automated summaries and reminders",
+    ],
+    aiMlComponents: ["Intent and slot extraction from chat", "Spending summaries from aggregates"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "blinkgrid",
+    productTitle: "BlinkGrid",
+    tagline: "Real-Time Multiplayer Reaction Game",
+    category: "Real-Time Gaming",
+    tech: ["React", "Node.js", "Express.js", "Socket.io", "Web Audio API"],
+    problemStatement:
+      "Browser multiplayer games often suffer from desync and cheating when clients own game state. Fast reaction gameplay needs low-latency sync and authoritative scoring without heavy client trust.",
+    systemArchitecture:
+      "Node.js/Express server hosts Socket.io rooms. Server-authoritative tile spawn, hit detection, and score application. Clients render grid and input; server validates taps against timing windows. Bot players run server-side for solo practice. Web Audio API handles short feedback cues.",
+    aiWorkflow:
+      "Bot opponents use lightweight policy or scripted reaction models to simulate human-like latency and target selection for single-player and fill-in multiplayer.",
+    engineeringContribution:
+      "Implemented server-authoritative game loop, special tiles (double points, traps, freeze), dynamic grid sizing (5×5 to 16×16), and Socket.io synchronization. Added AI bots and tuned animation and audio feedback for clarity under load.",
+    businessImpact:
+      "Fair competitive play with minimal cheating surface; engaging sessions for casual and ranked play with low operational complexity.",
+    realWorldUseCase:
+      "Four players join a room; the server emits tile coordinates and lifetimes. A trap tile penalizes the wrong tap; scores reconcile from the server only.",
+    keyFeatures: [
+      "Real-time multiplayer via Socket.io",
+      "Server-authoritative scoring",
+      "Special tiles and scalable grid sizes",
+      "AI bot players for solo mode",
+    ],
+    aiMlComponents: ["Heuristic / policy-based bot players", "Latency-aware timing validation"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "gotrip",
+    productTitle: "GoTrip",
+    tagline: "AI-Assisted Trip Booking & Itineraries",
+    category: "Travel & AI",
+    tech: ["React", "AI assistants", "REST APIs", "Responsive UI"],
+    problemStatement:
+      "Trip planning spans many tabs, opaque options, and static search. Travelers want conversational guidance and itineraries that adapt to preferences without rebuilding plans from scratch.",
+    systemArchitecture:
+      "React front end for search, itinerary builder, and trip history. Backend aggregates destination metadata and booking-related APIs. AI layer proposes routes, stays, and day plans from user constraints and prior trips, with guardrails for freshness and policy text.",
+    aiWorkflow:
+      "Assistant consumes structured trip context (dates, budget, party size) and returns ranked suggestions with rationale. Iterative refinement updates the itinerary graph; user edits are merged with model proposals.",
+    engineeringContribution:
+      "Designed responsive UX for discovery and itinerary editing; wired AI-assisted suggestions and preference-aware ranking into booking guidance flows.",
+    businessImpact:
+      "Shorter planning cycles and clearer tradeoffs for travelers; higher confidence in chosen itineraries through explainable suggestions.",
+    realWorldUseCase:
+      "A user asks for a 4-day Kerala hill itinerary under a set budget; the assistant proposes day blocks with travel times; the user swaps one day and the model reconciles logistics.",
+    keyFeatures: [
+      "Destination search and itinerary builder",
+      "Personalized AI travel suggestions",
+      "Trip history–aware recommendations",
+      "Responsive, navigation-focused UI",
+    ],
+    aiMlComponents: ["Conversational trip planning", "Preference-conditioned ranking"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "smartlead-ai",
+    productTitle: "SmartLead AI",
+    tagline: "Intelligent Lead Management & Conversion in Salesforce",
+    category: "Salesforce & CRM",
+    tech: ["Salesforce", "Apex", "LWC", "Salesforce Flows", "Web-to-Lead", "reCAPTCHA"],
+    problemStatement:
+      "Inbound leads arrive noisy and unevenly; manual triage delays response time. Sales teams need automated scoring, routing, and conversion with spam resistance and auditability.",
+    systemArchitecture:
+      "Secure Web-to-Lead with Google reCAPTCHA and Apex validation. Custom lead scoring in Apex and Flows classifies Hot/Warm/Cold. Assignment Rules and automation route by region and criteria. Dashboards and reports track funnel health; conversion flows enforce validation and follow-up tasks.",
+    aiWorkflow:
+      "Rule-based and threshold-driven scoring (explicit business criteria) feeds routing and prioritization; optional extensions can incorporate predictive models while keeping Flow-driven orchestration.",
+    engineeringContribution:
+      "Built Web-to-Lead with reCAPTCHA, Apex/LWC hardening, scoring and routing logic, dashboards, and automated conversion with validation and reminders.",
+    businessImpact:
+      "Faster first response, cleaner pipeline, and measurable conversion uplift through consistent qualification and routing.",
+    realWorldUseCase:
+      "A web form submission passes reCAPTCHA; score marks the lead Hot for enterprise SaaS; assignment rule sends it to the regional AE with a follow-up task.",
+    keyFeatures: [
+      "Spam-resistant Web-to-Lead",
+      "Hot/Warm/Cold scoring (Apex + Flows)",
+      "Automated assignment and conversion",
+      "Dashboards and reporting",
+    ],
+    aiMlComponents: ["Extensible scoring hooks for ML", "Rule-based prioritization"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "messy-to-neat",
+    productTitle: "Messy to Neat",
+    tagline: "AI Meeting Notes, Study Tools & Knowledge Maps",
+    category: "Productivity & Learning",
+    tech: ["React", "TypeScript", "Supabase", "AI APIs", "Voice", "PDF export"],
+    problemStatement:
+      "Raw meeting notes and lectures stay unstructured, hard to review, and weak for spaced practice. Users need summaries, actions, and study artifacts without manual reformatting.",
+    systemArchitecture:
+      "React + TypeScript client with Supabase for auth, autosave, and version history. Media ingestion (text, voice, uploads) feeds an AI pipeline that emits structured sections, action items, flashcards, and quizzes. Visualization layer renders mind maps and knowledge graphs from extracted entities and relations.",
+    aiWorkflow:
+      "Transcription (when voice) → segmentation → summarization and extraction of tasks, entities, and relations. Secondary passes generate flashcards/quizzes and optional study schedules. PDF export serializes the structured doc.",
+    engineeringContribution:
+      "Implemented multimodal capture, AI structuring pipeline, real-time transcription path, autosave/versioning, mind map and graph views, and PDF export.",
+    businessImpact:
+      "Higher retention and faster handoffs from meetings to execution; students and professionals reuse one source for notes, study, and sharing.",
+    realWorldUseCase:
+      "A user uploads a messy lecture transcript; the system returns summary, action list, and a mind map; they export a PDF for the team.",
+    keyFeatures: [
+      "Text, voice, and document input",
+      "Summaries, action items, flashcards, quizzes",
+      "Mind maps and knowledge graphs",
+      "Transcription, autosave, version history, PDF export",
+    ],
+    aiMlComponents: ["Summarization and extraction", "Entity/relation graph construction", "Quiz/flashcard generation"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "tripza",
+    productTitle: "Tripza",
+    tagline: "Travel & Vehicle Marketplace with Real-Time Messaging",
+    category: "Travel Marketplace",
+    tech: ["Next.js", "TypeScript", "Firebase", "Socket.io"],
+    problemStatement:
+      "Travelers and vehicle providers need discovery and coordination without forcing payments inside a young marketplace. Trust, messaging, and trip workflows must stay lightweight and real-time.",
+    systemArchitecture:
+      "Next.js + TypeScript UI; Firebase for auth, listings, and persistence. Socket.io channels power DMs and trip-thread updates. Booking requests and reviews use transactional writes with provider management surfaces.",
+    aiWorkflow:
+      "Optional ranking helpers can order listings by engagement and reviews; core flows remain deterministic marketplace logic with human-readable audit trails.",
+    engineeringContribution:
+      "Built marketplace discovery, trip posting, booking requests, reviews, provider tools, and Socket.io messaging on Firebase-backed data.",
+    businessImpact:
+      "Community-driven coordination with low friction; scalable path to monetization without blocking on payments on day one.",
+    realWorldUseCase:
+      "A traveler messages a vehicle host about luggage capacity; they confirm a booking request and track status in-app.",
+    keyFeatures: [
+      "Vehicle discovery and trip posts",
+      "Ride-share style browsing",
+      "Real-time messaging (Socket.io)",
+      "Booking requests, reviews, provider management",
+    ],
+    aiMlComponents: ["Optional listing ranking signals"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "sales-cloud-e2e",
+    productTitle: "Sales Cloud Implementation & Lead Automation",
+    tagline: "End-to-End Acquisition, Quotes, and Agentforce Automation",
+    category: "Salesforce & CRM",
+    tech: ["Sales Cloud", "Apex", "LWC", "Agentforce", "Experience Cloud", "Web-to-Lead", "reCAPTCHA"],
+    problemStatement:
+      "Growing sales orgs need a coherent object model from lead to cash, with automation that scales across regions and reduces manual quote-to-order errors.",
+    systemArchitecture:
+      "Sales Cloud data model spanning Accounts, Contacts, Leads, Opportunities, Products, Quotes, and Orders with validation and automation. Experience Cloud where applicable for partners or customers. Agentforce and Flows drive qualification, assignment, and conversion. Web-to-Lead with Apex/LWC + reCAPTCHA secures inbound capture.",
+    aiWorkflow:
+      "Agentforce assists qualification and next-best actions within guardrails; reporting surfaces pipeline and forecast health for leadership review.",
+    engineeringContribution:
+      "Configured core Sales Cloud relationships, regional assignment, lead conversion automation, secure Web-to-Lead, dashboards, and quote-to-order workflow streamlining.",
+    businessImpact:
+      "Single source of truth for revenue objects, fewer manual errors, and faster cycle times from lead capture to closed order.",
+    realWorldUseCase:
+      "A lead converts to Opportunity with products; quote generates and, upon acceptance, flows into order with automated tasks for fulfillment.",
+    keyFeatures: [
+      "Full lead-to-order object model",
+      "Regional assignment and qualification automation",
+      "Agentforce-assisted workflows",
+      "Secure Web-to-Lead with reCAPTCHA",
+      "Dashboards, forecasting, and quote-to-order automation",
+    ],
+    aiMlComponents: ["Agentforce for guided selling and automation", "Analytics on pipeline signals"],
+    github: null,
+    link: null,
+    featured: false,
   },
 ];
 
