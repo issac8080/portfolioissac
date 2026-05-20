@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Github, ExternalLink } from "lucide-react";
 import type { CaseStudy } from "@/data/caseStudies";
@@ -14,6 +15,7 @@ export default function ProjectModal({
   project: CaseStudy | null;
   onClose: () => void;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -27,7 +29,15 @@ export default function ProjectModal({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [project, handleEscape]);
 
+  useEffect(() => {
+    if (!project) return;
+    const t = window.setTimeout(() => panelRef.current?.focus(), 100);
+    return () => window.clearTimeout(t);
+  }, [project]);
+
   if (!project) return null;
+
+  const pid = project.id;
 
   return (
     <AnimatePresence mode="wait">
@@ -40,8 +50,8 @@ export default function ProjectModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-modal-title"
+        aria-describedby="project-modal-summary"
       >
-        {/* Dark backdrop — click to close */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -51,39 +61,98 @@ export default function ProjectModal({
           onClick={onClose}
           aria-hidden
         />
-        {/* Full-screen overlay panel — Apple product-detail style */}
         <motion.div
+          ref={panelRef}
+          tabIndex={-1}
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ type: "spring", damping: 28, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full h-full max-w-6xl max-h-[90vh] m-4 overflow-hidden flex flex-col glass rounded-2xl border border-ai-border shadow-2xl shadow-ai-glow/10"
+          className="relative w-full h-full max-w-6xl max-h-[100dvh] sm:max-h-[90vh] m-2 sm:m-4 overflow-hidden flex flex-col glass rounded-xl sm:rounded-2xl border border-ai-border shadow-2xl shadow-ai-glow/10 outline-none"
+          data-lenis-prevent-wheel
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-ai-border bg-ai-bg/95 backdrop-blur-md rounded-t-2xl shrink-0">
+          <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6 border-b border-ai-border bg-ai-bg/95 backdrop-blur-md rounded-t-xl sm:rounded-t-2xl shrink-0 gap-3">
             <div>
               <h2
                 id="project-modal-title"
-                className="text-2xl md:text-3xl font-bold text-white font-[var(--font-space-grotesk)]"
+                className="text-lg sm:text-2xl md:text-3xl font-bold text-white font-[var(--font-space-grotesk)]"
               >
                 {project.productTitle}
               </h2>
-              <p className="text-ai-glow/90 text-sm mt-1">{project.tagline}</p>
+              <p id="project-modal-summary" className="text-ai-glow/90 text-sm mt-1">
+                {project.tagline}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                <a
+                  href={`#${pid}-modal-problem`}
+                  className="text-ai-muted hover:text-ai-glow underline underline-offset-2"
+                >
+                  Problem
+                </a>
+                <span className="text-ai-border">·</span>
+                <a
+                  href={`#${pid}-modal-architecture`}
+                  className="text-ai-muted hover:text-ai-glow underline underline-offset-2"
+                >
+                  Architecture
+                </a>
+                <span className="text-ai-border">·</span>
+                <a
+                  href={`#${pid}-modal-ai`}
+                  className="text-ai-muted hover:text-ai-glow underline underline-offset-2"
+                >
+                  AI workflow
+                </a>
+                <span className="text-ai-border">·</span>
+                <Link
+                  href={`/projects/${project.id}`}
+                  prefetch={false}
+                  className="text-ai-accent hover:text-ai-accent/90 underline underline-offset-2"
+                  onClick={onClose}
+                >
+                  Shareable page
+                </Link>
+              </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-lg text-ai-muted hover:text-white hover:bg-ai-glow/10 transition-colors"
-              aria-label="Close"
+              aria-label="Close project details"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
-            <Section title="Problem Statement" content={project.problemStatement} />
-            <Section title="System Architecture" content={project.systemArchitecture} />
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 scroll-smooth">
+            {project.metrics && project.metrics.length > 0 && (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {project.metrics.map((m) => (
+                  <div
+                    key={m.label}
+                    className="rounded-xl border border-ai-border bg-ai-surface/30 p-4"
+                  >
+                    <p className="text-[10px] uppercase tracking-wider text-ai-muted mb-1">
+                      {m.label}
+                    </p>
+                    <p className="text-sm text-white/95">{m.value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
-            {/* System architecture diagram — Mermaid */}
+            <Section
+              id={`${pid}-modal-problem`}
+              title="Problem Statement"
+              content={project.problemStatement}
+            />
+            <Section
+              id={`${pid}-modal-architecture`}
+              title="System Architecture"
+              content={project.systemArchitecture}
+            />
+
             {projectMermaidDiagrams[project.id] && (
               <motion.div
                 key={project.id}
@@ -94,13 +163,38 @@ export default function ProjectModal({
                 <h3 className="text-ai-glow font-mono text-sm uppercase tracking-wider mb-3">
                   System Flow
                 </h3>
-                <MermaidChart projectId={project.id} />
+                <MermaidChart projectId={project.id} deferUntilVisible={false} />
               </motion.div>
             )}
 
-            <Section title="AI Workflow" content={project.aiWorkflow} />
-            <Section title="Engineering Contribution" content={project.engineeringContribution} />
-            <Section title="Business Impact" content={project.businessImpact} />
+            <Section id={`${pid}-modal-ai`} title="AI Workflow" content={project.aiWorkflow} />
+            <Section
+              id={`${pid}-modal-engineering`}
+              title="Engineering Contribution"
+              content={project.engineeringContribution}
+            />
+            <Section
+              id={`${pid}-modal-impact`}
+              title="Business Impact"
+              content={project.businessImpact}
+            />
+
+            {project.engineeringNotes && project.engineeringNotes.length > 0 && (
+              <div id={`${pid}-modal-notes`} className="space-y-3">
+                <h3 className="text-ai-accent font-mono text-sm uppercase tracking-wider">
+                  Engineering notes
+                </h3>
+                {project.engineeringNotes.map((n) => (
+                  <div
+                    key={n.label}
+                    className="rounded-xl border border-ai-border/80 border-l-2 border-l-ai-accent/50 bg-ai-surface/20 p-4"
+                  >
+                    <p className="text-xs font-semibold text-ai-accent mb-1">{n.label}</p>
+                    <p className="text-sm text-ai-muted leading-relaxed">{n.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div>
               <h3 className="text-ai-glow font-mono text-sm uppercase tracking-wider mb-3">
@@ -165,9 +259,17 @@ export default function ProjectModal({
   );
 }
 
-function Section({ title, content }: { title: string; content: string }) {
+function Section({
+  id,
+  title,
+  content,
+}: {
+  id: string;
+  title: string;
+  content: string;
+}) {
   return (
-    <div>
+    <div id={id}>
       <h3 className="text-ai-glow font-mono text-sm uppercase tracking-wider mb-2">
         {title}
       </h3>

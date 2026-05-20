@@ -1,238 +1,224 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useMemo } from "react";
+import Link from "next/link";
 import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { caseStudies } from "@/data/caseStudies";
 import type { CaseStudy } from "@/data/caseStudies";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { RecruiterSessionV1 } from "@/types/portfolioIntelligence";
+import {
+  Layers,
+  Cpu,
+  Sparkles,
+  FolderKanban,
+} from "lucide-react";
+import {
+  LabSectionGridBg,
+  LabSectionIntro,
+  LabStatusPanel,
+  LabSectionFooterStrip,
+} from "@/components/section-hud/LabSectionChrome";
+import { cn } from "@/lib/utils";
+import { getProjectHudAccent } from "@/lib/projectCardHudTheme";
+import { siteSectionClass, SITE_SECTION_INNER } from "@/lib/siteSectionLayout";
+
+function readRecruiterProjectScores(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem("pi_recruiter_v1");
+    if (!raw) return {};
+    const s = JSON.parse(raw) as RecruiterSessionV1;
+    return s.projectScores && typeof s.projectScores === "object" ? s.projectScores : {};
+  } catch {
+    return {};
+  }
+}
 
 const categories = ["All", ...Array.from(new Set(caseStudies.map((c) => c.category)))];
 
 const TILT_MAX_DEG = 6;
+
+const INITIAL_GRID = 9;
 
 export default function ProjectsShowcase({
   onSelectProject,
 }: {
   onSelectProject: (project: CaseStudy) => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState("All");
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
-  const filtered =
-    filter === "All"
-      ? caseStudies
-      : caseStudies.filter((c) => c.category === filter);
-
-  const updateScrollState = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 2);
-    setCanScrollRight(
-      el.scrollLeft < el.scrollWidth - el.clientWidth - 2
-    );
-  };
+  const [boost, setBoost] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScrollOrResize = () => {
-      requestAnimationFrame(updateScrollState);
-    };
-    onScrollOrResize();
-    el.addEventListener("scroll", onScrollOrResize, { passive: true });
-    const ro = new ResizeObserver(onScrollOrResize);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", onScrollOrResize);
-      ro.disconnect();
-    };
-  }, [filtered.length]);
+    setBoost(readRecruiterProjectScores());
+    const onUpd = () => setBoost(readRecruiterProjectScores());
+    window.addEventListener("portfolio-recruiter-session-updated", onUpd);
+    return () => window.removeEventListener("portfolio-recruiter-session-updated", onUpd);
+  }, []);
 
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const step = el.clientWidth * 0.85;
-    el.scrollBy({
-      left: dir === "left" ? -step : step,
-      behavior: "smooth",
+  const filtered = useMemo(() => {
+    const base =
+      filter === "All"
+        ? caseStudies
+        : caseStudies.filter((c) => c.category === filter);
+    return [...base].sort((a, b) => {
+      const da = boost[a.id] ?? 0;
+      const db = boost[b.id] ?? 0;
+      if (db !== da) return db - da;
+      return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
     });
-  };
+  }, [filter, boost]);
 
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const shownProjects = useMemo(
+    () =>
+      showAllProjects || filtered.length <= INITIAL_GRID
+        ? filtered
+        : filtered.slice(0, INITIAL_GRID),
+    [filtered, showAllProjects]
+  );
+
+  const hiddenProjectCount = Math.max(0, filtered.length - INITIAL_GRID);
+
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const update = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = el;
-      const max = scrollWidth - clientWidth;
-      setScrollProgress(max <= 0 ? 1 : scrollLeft / max);
-    };
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", update);
-      ro.disconnect();
-    };
-  }, [filtered.length]);
+    setShowAllProjects(false);
+  }, [filter]);
+
+  const featuredCount = useMemo(
+    () => caseStudies.filter((c) => c.featured).length,
+    []
+  );
 
   return (
     <section
       id="projects"
       data-cinematic-reveal
-      className="relative py-24 md:py-32 overflow-visible min-h-auto isolation-isolate z-[1]"
-      style={{ paddingBottom: "4rem" }}
+      className={cn(
+        siteSectionClass("isolation-isolate z-[1] overflow-visible"),
+        "pb-12 md:pb-16"
+      )}
     >
-      <div className="relative z-10 flex flex-col pt-16 md:pt-20 px-6 overflow-visible max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-white font-[var(--font-space-grotesk)]">
-            Projects
-          </h2>
-          <p className="text-ai-muted mt-2">
-            AI product systems — horizontal scroll to explore
-          </p>
-        </motion.div>
+      <LabSectionGridBg />
+      <div className={cn(SITE_SECTION_INNER, "flex flex-col overflow-visible pt-2 md:pt-4")}>
+        <LabSectionIntro
+          eyebrow="Case study deck"
+          title="Projects"
+          description="Nine case studies per view — expand for the full deck or filter by category. Recruiter session can re-rank cards locally."
+          aside={
+            <LabStatusPanel label="Lab status">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                  <div className="mb-1 flex items-center gap-1.5 text-[10px] text-ai-muted">
+                    <FolderKanban className="h-3.5 w-3.5 text-cyan-300" aria-hidden />
+                    Case studies
+                  </div>
+                  <p className="font-mono text-xl font-bold text-white">
+                    {String(caseStudies.length).padStart(2, "0")}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                  <div className="mb-1 flex items-center gap-1.5 text-[10px] text-ai-muted">
+                    <Sparkles className="h-3.5 w-3.5 text-fuchsia-300" aria-hidden />
+                    Featured
+                  </div>
+                  <p className="font-mono text-xl font-bold text-fuchsia-200">{featuredCount}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400/60 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(163,230,53,0.9)]" />
+                </span>
+                <span className="text-[11px] font-medium text-lime-200/95">Portfolio link graph live</span>
+              </div>
+            </LabStatusPanel>
+          }
+        />
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-wrap gap-2 mb-8"
+          className="mb-8 flex flex-wrap gap-2"
         >
           {categories.map((cat) => (
             <motion.button
               key={cat}
+              type="button"
               onClick={() => setFilter(cat)}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all",
                 filter === cat
-                  ? "bg-ai-glow/20 text-ai-glow border border-ai-border shadow-[0_0_15px_rgba(0,255,136,0.15)]"
-                  : "bg-ai-surface/50 text-ai-muted border border-transparent hover:border-ai-border/50"
-              }`}
+                  ? "border-cyan-400/60 bg-cyan-500/15 text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.25)]"
+                  : "border-white/10 bg-black/30 text-ai-muted hover:border-white/20 hover:text-white/90"
+              )}
             >
               {cat}
             </motion.button>
           ))}
         </motion.div>
 
-        <div className="relative overflow-visible">
-          {/* Left fade mask */}
-          <div
-            className="projects-fade-mask projects-fade-left absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-            aria-hidden
-          />
-          {/* Right fade mask */}
-          <div
-            className="projects-fade-mask projects-fade-right absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-            aria-hidden
-          />
-
-          {/* Scroll arrows */}
-          <button
-            type="button"
-            onClick={() => scroll("left")}
-            aria-label="Scroll left"
-            className={cn(
-              "absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border border-ai-border bg-ai-bg/90 backdrop-blur-sm flex items-center justify-center text-ai-glow transition-opacity duration-200",
-              canScrollLeft ? "opacity-100 hover:bg-ai-glow/10" : "opacity-0 pointer-events-none"
-            )}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll("right")}
-            aria-label="Scroll right"
-            className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border border-ai-border bg-ai-bg/90 backdrop-blur-sm flex items-center justify-center text-ai-glow transition-opacity duration-200",
-              canScrollRight ? "opacity-100 hover:bg-ai-glow/10" : "opacity-0 pointer-events-none"
-            )}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Scroll track wrapper: overflow-x auto, overflow-y visible so cards are never vertically clipped */}
-          <div
-            ref={scrollRef}
-            className="scroll-wrapper projects-scroll-container overflow-x-auto overflow-y-visible scroll-smooth py-4"
-            style={{
-              scrollSnapType: "x mandatory",
-              scrollPaddingInline: "2rem",
-              paddingInline: "2rem",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {/* Card row: flex, gap 1.5rem, align stretch, height auto; padding for 3D tilt clearance */}
-            <div
-              className="projects-cards-strip flex gap-6 items-stretch h-auto py-6 px-2"
-              style={{
-                width: "max-content",
-                perspective: "1200px",
-              }}
-            >
-              <AnimatePresence mode="popLayout">
-                {filtered.map((project, i) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    index={i}
-                    onSelect={() => onSelectProject(project)}
-                  />
-                ))}
-              </AnimatePresence>
+        <div className="relative" style={{ perspective: "1200px" }}>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <AnimatePresence mode="popLayout">
+              {shownProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  index={filtered.indexOf(project)}
+                  gridMode
+                  onSelect={() => onSelectProject(project)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+          {hiddenProjectCount > 0 && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllProjects((v) => !v)}
+                className="rounded-full border border-fuchsia-400/45 bg-fuchsia-500/10 px-5 py-2 text-sm font-semibold text-fuchsia-100 shadow-[0_0_22px_rgba(217,70,239,0.2)] transition-colors hover:border-fuchsia-300/70 hover:bg-fuchsia-500/15"
+              >
+                {showAllProjects ? "Show fewer" : `+${hiddenProjectCount} more`}
+              </button>
             </div>
-          </div>
-
-          {/* Scroll progress bar: outside scroll container; bottom -1.5rem so it does not overlap cards */}
-          <div
-            className="absolute left-0 w-full z-10 bg-ai-surface/50 rounded-full overflow-hidden"
-            style={{ bottom: "-1.5rem", height: "6px" }}
-            aria-hidden
-          >
-            <div
-              className="h-full bg-ai-glow/60 rounded-full transition-[width] duration-150"
-              style={{ width: `${scrollProgress * 100}%` }}
-            />
-          </div>
+          )}
         </div>
+
+        <LabSectionFooterStrip
+          items={[
+            { icon: <Layers className="h-3.5 w-3.5 text-violet-400" aria-hidden />, label: "Case dossiers" },
+            { icon: <Cpu className="h-3.5 w-3.5 text-cyan-400" aria-hidden />, label: "Systems detail" },
+            { icon: <Sparkles className="h-3.5 w-3.5 text-fuchsia-400" aria-hidden />, label: "Featured signals" },
+            { icon: <FolderKanban className="h-3.5 w-3.5 text-lime-400" aria-hidden />, label: "Deep pages" },
+          ]}
+        />
       </div>
     </section>
   );
 }
 
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function ProjectCard({
-  project,
-  index,
-  onSelect,
-}: {
-  project: CaseStudy;
-  index: number;
-  onSelect: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
+const ProjectCard = forwardRef<
+  HTMLDivElement,
+  {
+    project: CaseStudy;
+    index: number;
+    gridMode?: boolean;
+    onSelect: () => void;
+  }
+>(function ProjectCard({ project, index, gridMode, onSelect }, ref) {
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
   const springRotateX = useSpring(rotateX, { stiffness: 200, damping: 20 });
   const springRotateY = useSpring(rotateY, { stiffness: 200, damping: 20 });
   const glow = useMotionValue(0);
   const springGlow = useSpring(glow, { stiffness: 150, damping: 20 });
+  const h = getProjectHudAccent(index);
 
   const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dx = (e.clientX - cx) / (rect.width / 2);
@@ -272,48 +258,94 @@ function ProjectCard({
       onMouseMove={handleMouse}
       onMouseLeave={reset}
       onClick={onSelect}
-      className="project-card group cursor-pointer flex-shrink-0 min-w-[320px] w-[320px] md:w-[380px] snap-center"
+      className={cn(
+        "project-card group cursor-pointer",
+        gridMode
+          ? "w-full min-w-0 flex-shrink-0"
+          : "flex-shrink-0 snap-center w-[min(20rem,calc(100vw-6.5rem))] max-w-[calc(100vw-6.5rem)] md:w-[min(23.75rem,calc(100vw-8rem))] md:max-w-[min(23.75rem,calc(100vw-8rem))]"
+      )}
     >
       <motion.div
-        className="glass rounded-2xl p-6 h-full min-h-[320px] border border-ai-border gradient-border card-elevation-shadow flex flex-col"
+        className={cn(
+          "relative flex h-full min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl border-x border-white/[0.08] bg-[rgba(6,8,14,0.82)] p-6 backdrop-blur-md sm:min-h-[300px] md:min-h-[320px]",
+          h.borderNeonTop,
+          h.borderNeonBottom,
+          h.hudGlow
+        )}
         style={{
           transformStyle: "preserve-3d",
           backfaceVisibility: "hidden",
           transition: "box-shadow 0.3s ease",
           boxShadow: springGlow.get()
-            ? "0 30px 60px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,136,0.2), 0 0 50px -10px rgba(0,255,136,0.3)"
+            ? "0 30px 60px -15px rgba(0,0,0,0.55), 0 0 48px rgba(56,249,215,0.18)"
             : undefined,
         }}
       >
-        <div className="text-ai-glow/80 text-xs font-mono uppercase tracking-wider mb-3">
-          {project.category}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.1]"
+          aria-hidden
+          style={{
+            backgroundImage:
+              "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.06) 45%, transparent 90%)",
+          }}
+        />
+        <div className="relative mb-3 flex items-center gap-2">
+          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", h.dot)} aria-hidden />
+          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-ai-muted">
+            {project.category}
+          </span>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-ai-glow transition-colors">
+        <h3
+          className={cn(
+            "relative mb-2 text-xl font-bold text-white transition-colors group-hover:text-white",
+            h.titleAccent
+          )}
+        >
           {project.productTitle}
         </h3>
-        <p className="text-ai-muted text-sm line-clamp-2 mb-4 flex-1">
+        <p className="relative mb-4 flex-1 text-sm leading-snug text-ai-muted line-clamp-2">
           {project.tagline}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="relative flex flex-wrap gap-2">
           {project.tech.slice(0, 4).map((t, i) => (
             <motion.span
               key={t}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.06 + i * 0.04 }}
-              className="px-2.5 py-1 rounded-md bg-ai-glow/10 text-ai-glow/90 text-xs font-medium"
+              className={cn("rounded-md px-2.5 py-1 text-xs font-medium", h.techChip)}
             >
               {t}
             </motion.span>
           ))}
         </div>
-        <div className="mt-4 pt-4 border-t border-ai-border/50 flex items-center justify-between text-xs text-ai-accent">
-          <span>View case study</span>
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-            →
+        <div
+          className={cn(
+            "relative mt-4 flex flex-col gap-2 border-t pt-4 text-xs sm:flex-row sm:items-center sm:justify-between",
+            h.ctaRow,
+            "text-ai-accent"
+          )}
+        >
+          <span className="font-semibold uppercase tracking-wider text-white/90 transition-colors group-hover:text-white">
+            Open dossier
           </span>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <Link
+              href={`/projects/${project.id}`}
+              prefetch={false}
+              onClick={(e) => e.stopPropagation()}
+              className={cn("font-semibold hover:underline", h.titleAccent)}
+            >
+              Dedicated page
+            </Link>
+            <span className="hidden opacity-0 transition-opacity group-hover:opacity-100 sm:inline">
+              →
+            </span>
+          </div>
         </div>
       </motion.div>
     </motion.div>
   );
-}
+});
+
+ProjectCard.displayName = "ProjectCard";

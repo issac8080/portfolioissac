@@ -1,6 +1,31 @@
 /**
- * Builds ATS resume data from knowledgeBase.json and portfolio data.
+ * Builds ATS-friendly resume data from knowledgeBase.json and portfolio data.
+ * Structured for parsers: consistent headings, comma-separated skills, reverse-chronological
+ * experience with location/dates on one line, hyphen bullets (no special Unicode dashes).
  */
+
+export interface ATSExperienceEntry {
+  role: string;
+  company: string;
+  location: string;
+  period: string;
+  bullets: string[];
+}
+
+export interface ATSProjectEntry {
+  title: string;
+  bullets: string[];
+}
+
+export interface ATSResearchEntry {
+  title: string;
+  bullets: string[];
+}
+
+export interface ATSEducationEntry {
+  institution: string;
+  detailLine: string;
+}
 
 export interface ATSResumeData {
   name: string;
@@ -11,11 +36,12 @@ export interface ATSResumeData {
     location?: string;
   };
   summary: string;
-  skills: string[];
-  experience: { role: string; company: string; text: string }[];
-  projects: { title: string; text: string }[];
-  research: { title: string; text: string }[];
-  education: { name: string; text: string }[];
+  /** Single comma-separated line for ATS parsers */
+  skillsLine: string;
+  experience: ATSExperienceEntry[];
+  projects: ATSProjectEntry[];
+  research: ATSResearchEntry[];
+  education: ATSEducationEntry[];
 }
 
 interface KnowledgeChunk {
@@ -29,18 +55,88 @@ interface KnowledgeBase {
   chunks: KnowledgeChunk[];
 }
 
+/** Replace em/en dashes and fancy punctuation with ATS-safe ASCII */
+export function sanitizeAtsText(s: string): string {
+  return s
+    .replace(/\u2014/g, "-")
+    .replace(/\u2013/g, "-")
+    .replace(/\u2022/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function splitIntoBullets(text: string, maxBullets = 5): string[] {
+  const t = sanitizeAtsText(text);
+  if (!t) return [];
+  const parts = t
+    .split(/(?<=[.!?])\s+/)
+    .map((x) => sanitizeAtsText(x))
+    .filter((x) => x.length > 2);
+  const out = parts.length > 0 ? parts : [t];
+  return out.slice(0, maxBullets);
+}
+
+function skillsFromKnowledge(chunks: KnowledgeChunk[]): string[] {
+  const skillChunks = chunks.filter((c) => c.category === "skills");
+  const skillText = skillChunks.map((c) => c.text).join(" ");
+  const skills: string[] = [];
+  if (skillText) {
+    const parts = skillText
+      .replace(/Technologies:\s*/i, "")
+      .split(/[.,;]/)
+      .map((s) => sanitizeAtsText(s))
+      .filter((s) => s.length > 2 && s.length < 90);
+    const seen = new Set<string>();
+    for (const p of parts) {
+      const n = p;
+      if (!seen.has(n.toLowerCase())) {
+        seen.add(n.toLowerCase());
+        skills.push(n);
+      }
+    }
+  }
+  if (skills.length === 0) {
+    return [
+      "Salesforce",
+      "Apex",
+      "Lightning Web Components",
+      "Python",
+      "Machine Learning",
+      "TensorFlow",
+      "PyTorch",
+      "React",
+      "Node.js",
+      "MongoDB",
+      "REST APIs",
+      "MLOps",
+    ];
+  }
+  return skills;
+}
+
 export function buildResumeData(
   knowledgeBase: KnowledgeBase,
   portfolio: {
     contact: { mobile: string; email: string; linkedin: string };
     summary: string;
-    experience: { company: string; role: string; period: string; location: string | null; description: string | null }[];
+    experience: {
+      company: string;
+      role: string;
+      period: string;
+      duration: string;
+      location: string | null;
+      description: string | null;
+    }[];
     education: { name: string; degree: string; period: string }[];
-    publication: { title: string; author: string; role: string; location: string };
+    publication: {
+      title: string;
+      author: string;
+      role: string;
+      location: string;
+    };
   }
 ): ATSResumeData {
   const chunks = knowledgeBase.chunks ?? [];
-  const byCategory = (cat: string) => chunks.filter((c) => c.category === cat);
 
   const name = "Issac Sunny";
   const contact = {
@@ -49,46 +145,72 @@ export function buildResumeData(
     linkedin: portfolio.contact.linkedin,
     location: "Thrissur, Kerala, India",
   };
-  const summary = portfolio.summary;
 
-  const skillChunks = byCategory("skills");
-  const skills: string[] = [];
-  const skillText = skillChunks.map((c) => c.text).join(" ");
-  if (skillText) {
-    const parts = skillText.replace(/Technologies:\s*/i, "").split(/[.,;]/).map((s) => s.trim()).filter((s) => s.length > 2);
-    const seen = new Set<string>();
-    for (const p of parts) {
-      const n = p.replace(/\s+/g, " ").trim();
-      if (n.length > 3 && n.length < 80 && !seen.has(n)) {
-        seen.add(n);
-        skills.push(n);
-      }
-    }
-  }
-  if (skills.length === 0) {
-    skills.push("Salesforce Training, Salesforce.com Development, Apex Programming", "Python, Machine Learning, TensorFlow", "MERN Stack, React, Node.js, MongoDB", "Cloud Computing, Full-stack and AI engineering");
-  }
+  const summary = sanitizeAtsText(portfolio.summary);
 
-  const expChunks = byCategory("experience");
-  const experience =
-    expChunks.length > 0
-      ? expChunks.map((c) => ({ role: c.source, company: c.source, text: c.text }))
-      : portfolio.experience.map((e) => ({
-          role: e.role,
-          company: e.company,
-          text: [e.role, e.company, e.period, e.location, e.description].filter(Boolean).join(". "),
-        }));
+  const skillsArr = skillsFromKnowledge(chunks);
+  const skillsLine = skillsArr.join(", ");
 
-  const projChunks = byCategory("projects");
-  const projects = projChunks.map((c) => ({ title: c.source, text: c.text }));
+  const experience: ATSExperienceEntry[] = portfolio.experience.map((e) => {
+    const loc = e.location ? sanitizeAtsText(e.location) : "";
+    const bullets: string[] = e.description
+      ? splitIntoBullets(e.description, 5)
+      : [
+          sanitizeAtsText(
+            `${e.period} (${e.duration})${loc ? ` - ${loc}` : ""}`
+          ),
+        ];
+    return {
+      role: sanitizeAtsText(e.role),
+      company: sanitizeAtsText(e.company),
+      location: loc,
+      period: sanitizeAtsText(e.period),
+      bullets,
+    };
+  });
 
-  const researchChunks = byCategory("research");
-  const research = researchChunks.map((c) => ({ title: c.source, text: c.text }));
-
-  const education = portfolio.education.map((e) => ({
-    name: e.name,
-    text: [e.degree, e.period].filter(Boolean).join(". "),
+  const projChunks = chunks.filter((c) => c.category === "projects");
+  const projects: ATSProjectEntry[] = projChunks.map((c) => ({
+    title: sanitizeAtsText(c.source),
+    bullets: splitIntoBullets(c.text, 4).length
+      ? splitIntoBullets(c.text, 4)
+      : [sanitizeAtsText(c.text)],
   }));
 
-  return { name, contact, summary, skills, experience, projects, research, education };
+  const researchChunks = chunks.filter((c) => c.category === "research");
+  const research: ATSResearchEntry[] = [];
+
+  research.push({
+    title: sanitizeAtsText(portfolio.publication.title),
+    bullets: [
+      sanitizeAtsText(
+        `Author: ${portfolio.publication.author}. ${portfolio.publication.role}. ${portfolio.publication.location}.`
+      ),
+    ],
+  });
+
+  for (const c of researchChunks) {
+    research.push({
+      title: sanitizeAtsText(c.source),
+      bullets: splitIntoBullets(c.text, 4).length
+        ? splitIntoBullets(c.text, 4)
+        : [sanitizeAtsText(c.text)],
+    });
+  }
+
+  const education: ATSEducationEntry[] = portfolio.education.map((edu) => ({
+    institution: sanitizeAtsText(edu.name),
+    detailLine: sanitizeAtsText(`${edu.degree} | ${edu.period}`),
+  }));
+
+  return {
+    name,
+    contact,
+    summary,
+    skillsLine,
+    experience,
+    projects,
+    research,
+    education,
+  };
 }

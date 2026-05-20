@@ -9,26 +9,30 @@ import {
   experienceEdges,
   type ExperienceNode,
 } from "@/data/experienceNodes";
+import {
+  LabSectionGridBg,
+  LabSectionIntro,
+  LabStatusPanel,
+  LabSectionFooterStrip,
+} from "@/components/section-hud/LabSectionChrome";
+import { siteSectionClass, SITE_SECTION_INNER } from "@/lib/siteSectionLayout";
+import { cn } from "@/lib/utils";
+import { Hexagon, Layers2, MousePointer2, Network } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/** Flat-top hexagon clip-path */
+/** Pointy-top regular hexagon clip-path */
 const HEX_CLIP =
   "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
-/** Honeycomb layout: row1 = 3, row2 = 4, row3 = 3. We have 6 nodes → row1: 3, row2: 3 (offset). */
-const ROW_1_INDICES = [0, 1, 2];
-const ROW_2_INDICES = [3, 4, 5];
+/** Row-major order in the 3×2 grid (desktop): top 0–2, bottom 3–5 */
+const GRID_ORDER = [0, 1, 2, 3, 4, 5] as const;
 
 export default function ExperienceSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [selected, setSelected] = useState<ExperienceNode | null>(null);
-  const [selectedOrigin, setSelectedOrigin] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<number | null>(null);
   const [activeNode, setActiveNode] = useState<number | null>(null);
   const hexRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -47,6 +51,10 @@ export default function ExperienceSection() {
     if (!grid) return;
 
     const updateLines = () => {
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        setLinePaths([]);
+        return;
+      }
       const rect = grid.getBoundingClientRect();
       const paths: { d: string; from: number; to: number }[] = [];
       experienceEdges.forEach(([fromIdx, toIdx]) => {
@@ -55,6 +63,7 @@ export default function ExperienceSection() {
         if (!fromEl || !toEl) return;
         const r1 = fromEl.getBoundingClientRect();
         const r2 = toEl.getBoundingClientRect();
+        if (r1.width < 4 || r1.height < 4 || r2.width < 4 || r2.height < 4) return;
         const x1 = r1.left - rect.left + r1.width / 2;
         const y1 = r1.top - rect.top + r1.height / 2;
         const x2 = r2.left - rect.left + r2.width / 2;
@@ -68,23 +77,27 @@ export default function ExperienceSection() {
       setLinePaths(paths);
     };
 
-    // Run after hexes have laid out (stagger delay + layout)
-    const t = setTimeout(updateLines, 400);
-    const ro = new ResizeObserver(updateLines);
-    ro.observe(grid);
-    window.addEventListener("scroll", updateLines, { passive: true });
-    return () => {
-      clearTimeout(t);
-      ro.disconnect();
-      window.removeEventListener("scroll", updateLines);
+    const scheduleLines = () => {
+      requestAnimationFrame(() => requestAnimationFrame(updateLines));
     };
-  }, [sectionInView]);
 
-  const openModal = (node: ExperienceNode, sourceRect: DOMRect) => {
-    setSelectedOrigin({
-      x: sourceRect.left + sourceRect.width / 2,
-      y: sourceRect.top + sourceRect.height / 2,
-    });
+    const staggerMs =
+      (experienceNodes.length - 1) * 100 + (isReducedMotion ? 50 : 650);
+    const timers = [60, 320, staggerMs, staggerMs + 400].map((ms) =>
+      setTimeout(scheduleLines, ms)
+    );
+
+    const ro = new ResizeObserver(scheduleLines);
+    ro.observe(grid);
+    window.addEventListener("scroll", scheduleLines, { passive: true });
+    return () => {
+      timers.forEach(clearTimeout);
+      ro.disconnect();
+      window.removeEventListener("scroll", scheduleLines);
+    };
+  }, [sectionInView, isReducedMotion]);
+
+  const openModal = (node: ExperienceNode) => {
     setSelected(node);
   };
 
@@ -114,45 +127,47 @@ export default function ExperienceSection() {
     <section
       id="experience"
       ref={sectionRef}
-      className="relative z-0 pt-28 pb-24 md:pt-32 md:pb-32 overflow-x-hidden overflow-y-visible"
+      className={siteSectionClass("z-0 overflow-y-visible")}
     >
-      <div className="max-w-4xl mx-auto px-6 relative z-0">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-2 font-[var(--font-space-grotesk)]"
-        >
-          Experience
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-ai-muted mb-2 max-w-2xl"
-        >
-          Neural career map — hover and click nodes to see full details.
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-ai-muted/80 text-sm mb-14 md:mb-16 max-w-2xl"
-        >
-          Roles across AI/ML engineering, full-stack development, Salesforce, and
-          community leadership.
-        </motion.p>
+      <LabSectionGridBg />
+      <div className={cn(SITE_SECTION_INNER, "pb-1 md:pb-2")}>
+        <LabSectionIntro
+          eyebrow="Timeline lattice"
+          title="Experience"
+          description="Career graph — straight connectors show threads (ML path, web path, leadership, overlaps). Hover a line or node for detail."
+          descriptionSecondary="Roles across AI/ML engineering, full-stack, Salesforce, and community leadership — click any hex for the full story."
+          titleClassName="!text-3xl md:!text-5xl"
+          aside={
+            <LabStatusPanel label="Lattice status">
+              <div className="space-y-2 text-xs text-ai-muted">
+                <div className="flex justify-between gap-6">
+                  <span>Nodes</span>
+                  <span className="font-mono text-white">{experienceNodes.length}</span>
+                </div>
+                <div className="flex justify-between gap-6">
+                  <span>Edges</span>
+                  <span className="font-mono text-white">{experienceEdges.length}</span>
+                </div>
+                <div className="flex justify-between gap-6">
+                  <span>Mode</span>
+                  <span className="text-cyan-200/90">interactive</span>
+                </div>
+              </div>
+            </LabStatusPanel>
+          }
+        />
 
-        {/* Honeycomb grid: constrained so nodes stay inside viewport and below navbar */}
+        {/* 3×2 grid (mobile: single column) — one grid keeps rows aligned */}
         <div
           ref={gridRef}
-          className="experience-honeycomb relative mx-auto w-full max-w-lg md:max-w-2xl min-w-0"
+          className="experience-honeycomb relative mx-auto w-full max-w-2xl min-w-0 overflow-hidden rounded-2xl px-3 py-5 md:max-w-3xl md:px-6 md:py-6"
         >
-          {/* SVG connection lines (desktop only, behind hexes) */}
+          {/* SVG connection lines (desktop only, behind hexes) — straight segments, clipped to honeycomb */}
           <svg
             ref={svgRef}
-            className="absolute inset-0 w-full h-full hidden md:block"
-            style={{ overflow: "visible", pointerEvents: "none" }}
+            className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
+            style={{ overflow: "hidden" }}
+            preserveAspectRatio="none"
           >
             <defs>
               <linearGradient
@@ -162,11 +177,12 @@ export default function ExperienceSection() {
                 x2="100%"
                 y2="0%"
               >
-                <stop offset="0%" stopColor="#00ff88" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#00d4ff" stopOpacity="0.5" />
+                <stop offset="0%" stopColor="#38f9d7" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#c4b5fd" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#7dd3fc" stopOpacity="0.9" />
               </linearGradient>
               <filter id="experience-line-glow">
-                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -183,12 +199,12 @@ export default function ExperienceSection() {
                     d={path.d}
                     fill="none"
                     stroke="url(#experience-line-grad)"
-                    strokeWidth={active ? 2.5 : 1.5}
+                    strokeWidth={active ? 4 : 2.75}
                     strokeLinecap="round"
                     initial={{ pathLength: 0, opacity: 0 }}
                     animate={{
                       pathLength: sectionInView ? 1 : 0,
-                      opacity: sectionInView ? (active ? 0.9 : 0.35) : 0,
+                      opacity: sectionInView ? (active ? 1 : 0.58) : 0,
                     }}
                     transition={{
                       pathLength: { duration: 0.6, delay: i * 0.06 },
@@ -204,8 +220,9 @@ export default function ExperienceSection() {
           </svg>
           {/* Invisible wide stroke for line hover (desktop); separate layer so SVG stays pointer-events-none for pass-through */}
           <svg
-            className="absolute inset-0 w-full h-full hidden md:block"
-            style={{ overflow: "visible", pointerEvents: "auto" }}
+            className="absolute inset-0 hidden h-full w-full md:block"
+            style={{ overflow: "hidden", pointerEvents: "auto" }}
+            preserveAspectRatio="none"
             aria-hidden
           >
             {linePaths.map((path, i) => (
@@ -223,35 +240,13 @@ export default function ExperienceSection() {
             ))}
           </svg>
 
-          {/* Row 1: 3 hexagons; mobile: stack vertically */}
-          <div className="flex flex-col md:flex-row flex-nowrap items-center justify-center gap-[var(--hex-gap)]">
-            {ROW_1_INDICES.map((idx, order) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 justify-items-center mx-auto w-full md:w-fit gap-x-[var(--hex-gap)] gap-y-[var(--hex-gap)] md:gap-y-[calc(var(--hex-gap)+6px)]">
+            {GRID_ORDER.map((idx, order) => (
               <HexCard
                 key={experienceNodes[idx].id}
                 node={experienceNodes[idx]}
                 index={idx}
                 order={order}
-                sectionInView={sectionInView}
-                isReducedMotion={isReducedMotion}
-                isActive={activeNode === idx}
-                onHover={() => setActiveNode(idx)}
-                onLeave={() => setActiveNode(null)}
-                onOpenModal={openModal}
-                hexRef={(el) => {
-                  hexRefs.current[idx] = el;
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Row 2: 3 hexagons; desktop: offset by half hex width (honeycomb); mobile: stack, no offset */}
-          <div className="experience-hex-row-2 flex flex-col md:flex-row flex-nowrap items-center justify-center gap-[var(--hex-gap)] mt-[var(--hex-gap)] md:translate-x-[calc((var(--hex-w)+var(--hex-gap))/2)]">
-            {ROW_2_INDICES.map((idx, order) => (
-              <HexCard
-                key={experienceNodes[idx].id}
-                node={experienceNodes[idx]}
-                index={idx}
-                order={order + ROW_1_INDICES.length}
                 sectionInView={sectionInView}
                 isReducedMotion={isReducedMotion}
                 isActive={activeNode === idx}
@@ -271,23 +266,24 @@ export default function ExperienceSection() {
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 pt-10 border-t border-ai-border/50"
+          className="relative mt-12 overflow-hidden rounded-2xl border-x border-white/10 border-t-2 border-t-cyan-400/70 border-b-2 border-b-violet-500/45 bg-black/35 px-4 py-7 shadow-[0_0_36px_rgba(34,211,238,0.14)] backdrop-blur-xl sm:px-6 md:mt-14 md:px-8 md:py-9"
         >
-          <h3 className="text-ai-glow font-mono text-xs uppercase tracking-wider mb-4">
+          <div
+            className="games-hud-shimmer pointer-events-none absolute inset-0 opacity-[0.15]"
+            aria-hidden
+          />
+          <h3 className="relative mb-4 font-mono text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/90">
             Roles at a glance
           </h3>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {experienceNodes.map((node) => (
-              <li key={node.id}>
+              <li key={node.id} className="flex min-h-0">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    const rect = (
-                      e.currentTarget as HTMLElement
-                    ).getBoundingClientRect();
-                    openModal(node, rect);
+                  onClick={() => {
+                    openModal(node);
                   }}
-                  className="text-left w-full rounded-xl border border-ai-border/50 bg-ai-surface/30 px-4 py-3 hover:border-ai-glow/30 hover:bg-ai-glow/5 transition-colors group"
+                  className="group flex h-full min-h-[168px] w-full flex-col rounded-xl border border-cyan-400/20 bg-ai-surface/25 px-4 py-3 text-left transition-colors hover:border-fuchsia-400/35 hover:bg-cyan-500/5 hover:shadow-[0_0_24px_rgba(56,249,215,0.12)]"
                 >
                   <span className="font-medium text-white group-hover:text-ai-glow transition-colors block">
                     {node.role}
@@ -298,7 +294,7 @@ export default function ExperienceSection() {
                   <span className="text-ai-muted/80 text-xs block mt-1">
                     {node.period} · {node.duration}
                   </span>
-                  <p className="text-ai-muted/90 text-xs mt-2 line-clamp-2 leading-relaxed">
+                  <p className="mt-auto text-ai-muted/90 text-xs line-clamp-3 leading-relaxed">
                     {node.contribution}
                   </p>
                 </button>
@@ -306,14 +302,21 @@ export default function ExperienceSection() {
             ))}
           </ul>
         </motion.div>
+
+        <LabSectionFooterStrip
+          items={[
+            { icon: <Network className="h-4 w-4 text-cyan-400" aria-hidden />, label: "thread graph" },
+            { icon: <Hexagon className="h-4 w-4 text-violet-400" aria-hidden />, label: "hex nodes" },
+            { icon: <MousePointer2 className="h-4 w-4 text-fuchsia-400" aria-hidden />, label: "click to expand" },
+            { icon: <Layers2 className="h-4 w-4 text-lime-400" aria-hidden />, label: "multi-role stack" },
+          ]}
+        />
       </div>
 
       <ExperienceModal
         node={selected}
-        origin={selectedOrigin}
         onClose={() => {
           setSelected(null);
-          setSelectedOrigin(null);
         }}
       />
     </section>
@@ -340,12 +343,11 @@ function HexCard({
   isActive: boolean;
   onHover: () => void;
   onLeave: () => void;
-  onOpenModal: (node: ExperienceNode, rect: DOMRect) => void;
+  onOpenModal: (node: ExperienceNode) => void;
   hexRef: (el: HTMLDivElement | null) => void;
 }) {
-  const handleClick = (e: React.MouseEvent) => {
-    const el = e.currentTarget as HTMLDivElement;
-    onOpenModal(node, el.getBoundingClientRect());
+  const handleClick = () => {
+    onOpenModal(node);
   };
 
   return (
@@ -384,7 +386,7 @@ function HexCard({
           }}
           aria-hidden
         />
-        <span className="relative z-10 text-xs font-medium text-white px-2 leading-tight">
+        <span className="relative z-10 line-clamp-2 px-2 text-[10px] font-medium leading-tight text-white md:text-xs">
           {node.role}
         </span>
         <span className="relative z-10 text-[10px] text-ai-muted mt-0.5 px-2">
@@ -400,20 +402,11 @@ function HexCard({
 
 function ExperienceModal({
   node,
-  origin,
   onClose,
 }: {
   node: ExperienceNode | null;
-  origin: { x: number; y: number } | null;
   onClose: () => void;
 }) {
-  const centerX =
-    typeof window !== "undefined" ? window.innerWidth / 2 : 0;
-  const centerY =
-    typeof window !== "undefined" ? window.innerHeight / 2 : 0;
-  const fromX = origin ? origin.x - centerX : 0;
-  const fromY = origin ? origin.y - centerY : 0;
-
   return (
     <AnimatePresence mode="wait">
       {node && (
@@ -427,37 +420,15 @@ function ExperienceModal({
             onClick={onClose}
             aria-hidden
           />
-          <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.2,
-              x: fromX,
-              y: fromY,
-              filter: "blur(8px)",
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              x: 0,
-              y: 0,
-              filter: "blur(0px)",
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.92,
-              x: fromX * 0.3,
-              y: fromY * 0.3,
-              filter: "blur(4px)",
-            }}
-            transition={{
-              type: "spring",
-              damping: 26,
-              stiffness: 280,
-              mass: 0.8,
-            }}
-            className="fixed left-1/2 top-1/2 z-[100] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-ai-border bg-ai-bg/95 p-6 shadow-2xl shadow-ai-glow/10 backdrop-blur-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className="pointer-events-auto w-full max-w-lg max-h-[min(90dvh,640px)] overflow-y-auto rounded-2xl border border-ai-border bg-ai-bg/95 p-6 shadow-2xl shadow-ai-glow/10 backdrop-blur-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-xl font-bold text-white">{node.role}</h3>
@@ -533,7 +504,8 @@ function ExperienceModal({
                 </dd>
               </div>
             </dl>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

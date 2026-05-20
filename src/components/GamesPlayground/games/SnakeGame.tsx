@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 const CELL = 16;
 const TICK_MS = 120;
 type Dir = "up" | "down" | "left" | "right";
 
 export default function SnakeGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const touchStart = useRef({ x: 0, y: 0 });
   const [score, setScore] = useState(0);
@@ -52,13 +54,13 @@ export default function SnakeGame({ onScore }: { onScore?: (score: number) => vo
     ctx.fillRect(0, 0, w, h);
     const snake = snakeRef.current;
     const food = foodRef.current;
-    ctx.fillStyle = "#00ff88";
+    ctx.fillStyle = theme.canvasPrimary;
     snake.forEach((s) => { ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2); });
-    ctx.fillStyle = "#00d4ff";
+    ctx.fillStyle = theme.canvasSecondary;
     ctx.beginPath();
     ctx.arc(food.x * CELL + CELL / 2, food.y * CELL + CELL / 2, CELL / 2 - 2, 0, Math.PI * 2);
     ctx.fill();
-  }, [cols, rows]);
+  }, [cols, rows, theme.canvasPrimary, theme.canvasSecondary]);
 
   const tick = useCallback(() => {
     if (gameOver) return;
@@ -161,14 +163,14 @@ export default function SnakeGame({ onScore }: { onScore?: (score: number) => vo
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-lg relative">
       <div className="flex items-center justify-between w-full">
-        <span className="text-ai-glow font-mono">Score: {score}</span>
+        <span className={`${theme.text} font-mono`}>Score: {score}</span>
         {!started && (
-          <button type="button" onClick={() => { setStarted(true); draw(); }} className="px-4 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">
+          <button type="button" onClick={() => { setStarted(true); draw(); }} className={`px-4 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>
             Start
           </button>
         )}
         {started && !gameOver && (
-          <button type="button" onClick={restart} className="px-4 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">
+          <button type="button" onClick={restart} className={`px-4 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>
             Restart
           </button>
         )}
@@ -185,8 +187,8 @@ export default function SnakeGame({ onScore }: { onScore?: (score: number) => vo
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-2xl">
           <div className="bg-ai-bg border border-ai-border rounded-xl p-6 text-center">
             <p className="text-xl text-white mb-2">Game Over</p>
-            <p className="text-ai-glow mb-4">Score: {score}</p>
-            <button type="button" onClick={restart} className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">
+            <p className={`${theme.text} mb-4`}>Score: {score}</p>
+            <button type="button" onClick={restart} className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>
               Play Again
             </button>
           </div>

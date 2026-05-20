@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 type Piece = "K" | "Q" | "R" | "B" | "N" | "P" | "k" | "q" | "r" | "b" | "n" | "p";
 type Square = Piece | null;
@@ -73,6 +74,7 @@ const SYMBOLS: Record<Piece, string> = {
 };
 
 export default function ChessGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const [board, setBoard] = useState<Board>(() => INIT.map((row) => [...row]));
   const [whiteTurn, setWhiteTurn] = useState(true);
   const [selected, setSelected] = useState<[number, number] | null>(null);
@@ -142,8 +144,8 @@ export default function ChessGame({ onScore }: { onScore?: (score: number) => vo
               onClick={() => handleSquare(r, c)}
               className={`flex items-center justify-center text-2xl touch-manipulation border border-transparent
                 ${dark ? "bg-ai-surface" : "bg-ai-bg"}
-                ${isSelected ? "ring-2 ring-ai-glow" : ""}
-                ${isLegal && !piece ? "bg-ai-glow/20" : ""}
+                ${isSelected ? `ring-2 ${theme.ring}` : ""}
+                ${isLegal && !piece ? theme.bg20 : ""}
                 ${isLegal && piece ? "ring-2 ring-red-400/50" : ""}`}
               style={{ width: cellSize, height: cellSize, minWidth: cellSize, minHeight: cellSize }}
             >
@@ -152,7 +154,7 @@ export default function ChessGame({ onScore }: { onScore?: (score: number) => vo
           );
         })}
       </div>
-      <button type="button" onClick={reset} className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">
+      <button type="button" onClick={reset} className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>
         Reset
       </button>
     </div>

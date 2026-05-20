@@ -6,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/** Section-based scroll triggers only. Uses native window scroll. No parallax, no scrub that ties animation to scroll position. */
+/** Section reveals + optional scroll-linked parallax on `[data-parallax-scroll]` (skipped when user prefers reduced motion). */
 export default function ScrollEffects({
   modalOpen = false,
 }: {
@@ -18,6 +18,35 @@ export default function ScrollEffects({
     if (modalOpen) return;
 
     ctxRef.current = gsap.context(() => {
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      // Depth parallax: background layers drift at different rates while scrolling
+      if (!reduceMotion) {
+        gsap.utils
+          .toArray<HTMLElement>("[data-parallax-scroll]")
+          .forEach((el) => {
+            const raw = el.dataset.parallaxScroll ?? "0.12";
+            const speed = Number.parseFloat(raw);
+            if (!Number.isFinite(speed)) return;
+            gsap.fromTo(
+              el,
+              { y: speed * 72 },
+              {
+                y: -speed * 72,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: "#main-content",
+                  start: "top top",
+                  end: "bottom bottom",
+                  scrub: 2.6,
+                },
+              }
+            );
+          });
+      }
+
       // Section entry: one-shot reveal when section enters view (no scrub)
       gsap.utils.toArray<HTMLElement>("[data-cinematic-reveal]").forEach((el) => {
         gsap.fromTo(

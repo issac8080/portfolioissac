@@ -4,6 +4,8 @@
  * No API calls, fully offline capable.
  */
 
+import type { ProjectIntelDoc } from "@/types/portfolioIntelligence";
+
 export type KnowledgeChunk = {
   id: string;
   text: string;
@@ -23,12 +25,41 @@ let vectors: Float32Array[] = [];
 let chunks: KnowledgeChunk[] = [];
 let dim = 0;
 let ready = false;
+let projectIntelBySource: Record<string, ProjectIntelDoc> | null = null;
+
+/** Rich metadata for Intelligence View (optional extension of knowledge base JSON). */
+export function getProjectIntelBySource(): Record<string, ProjectIntelDoc> | null {
+  return projectIntelBySource;
+}
 
 /** Minimum cosine similarity to consider a match (normalized vectors => dot = cosine). */
 const CONFIDENCE_THRESHOLD = 0.25;
 
 export function isReady(): boolean {
   return ready;
+}
+
+/** Approximate in-memory footprint of the embedded knowledge index (vectors + text). */
+export function getEmbeddingIndexStats(): {
+  ready: boolean;
+  chunkCount: number;
+  vectorDim: number;
+  approxIndexBytes: number;
+} {
+  if (!ready || vectors.length === 0) {
+    return { ready: false, chunkCount: 0, vectorDim: 0, approxIndexBytes: 0 };
+  }
+  const vectorBytes = vectors.length * dim * 4;
+  let textBytes = 0;
+  for (const c of chunks) {
+    textBytes += c.text.length * 2;
+  }
+  return {
+    ready: true,
+    chunkCount: chunks.length,
+    vectorDim: dim,
+    approxIndexBytes: vectorBytes + textBytes,
+  };
 }
 
 function tensorToFloat32Array(out: TensorLike): Float32Array {
@@ -65,10 +96,29 @@ function semanticChunk(text: string, id: string, category: string, source: strin
 export async function loadKnowledgeEmbeddings(): Promise<void> {
   if (ready) return;
 
-  const mod = await import("@xenova/transformers");
-  const createPipeline = (mod as { pipeline: (a: string, b: string, c?: object) => Promise<unknown> }).pipeline;
+  const { pipeline: createPipeline, env } = (await import("@xenova/transformers")) as {
+    pipeline: (a: string, b: string, c?: object) => Promise<unknown>;
+    env: { version: string; backends?: { onnx?: { wasm?: { wasmPaths?: string } } } };
+  };
+
+  // Next/Webpack can polyfill `fs` so Transformers thinks it is "Node" and points WASM at a bundled
+  // path that does not exist in the browser → 404 on *.wasm and "Inference: Fault". Force CDN WASM.
+  if (typeof window !== "undefined" && env.backends?.onnx?.wasm) {
+    const ver = env.version || "2.17.2";
+    env.backends.onnx.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/@xenova/transformers@${ver}/dist/`;
+  }
+
   const kbRes = await fetch("/knowledgeBase.json");
+  if (!kbRes.ok) {
+    throw new Error(`knowledgeBase.json HTTP ${kbRes.status}`);
+  }
   const kb = await kbRes.json();
+
+  if (kb.projectIntelligence && typeof kb.projectIntelligence === "object") {
+    projectIntelBySource = kb.projectIntelligence as Record<string, ProjectIntelDoc>;
+  } else {
+    projectIntelBySource = null;
+  }
 
   const extractor = (await createPipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
     progress_callback: () => {},
@@ -200,4 +250,20 @@ export function formatReply(results: SearchResult[]): string {
 
 export function getBestScore(results: SearchResult[]): number {
   return results.length > 0 ? results[0].score : 0;
+}
+
+/** Cosine similarity between two phrases using the same embedding model (normalized vectors → dot product). */
+export async function embeddingSimilarity(
+  textA: string,
+  textB: string
+): Promise<number | null> {
+  if (!pipeline || !ready) return null;
+  const a = textA.trim();
+  const b = textB.trim();
+  if (!a || !b) return null;
+  const outA = await pipeline(a, { pooling: "mean", normalize: true });
+  const outB = await pipeline(b, { pooling: "mean", normalize: true });
+  const va = tensorToFloat32Array(outA);
+  const vb = tensorToFloat32Array(outB);
+  return dotProduct(va, vb);
 }

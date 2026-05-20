@@ -1,8 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { BookOpen, LineChart, Microscope } from "lucide-react";
+import MermaidChart from "@/components/MermaidChart";
+import {
+  LabSectionGridBg,
+  LabSectionIntro,
+  LabSectionFooterStrip,
+} from "@/components/section-hud/LabSectionChrome";
+import { siteSectionClass, SITE_SECTION_INNER } from "@/lib/siteSectionLayout";
 import { publication } from "@/data/portfolio";
+import { researchArchitectureDiagram } from "@/data/researchDiagram";
 
 const steps = [
   { id: 1, label: "Data Ingestion", desc: "User behavior logs & audit trails" },
@@ -23,24 +32,15 @@ export default function ResearchSection() {
   const [activeStep, setActiveStep] = useState(1);
 
   return (
-    <section id="research" className="relative py-24 md:py-32 overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-4 font-[var(--font-space-grotesk)]"
-        >
-          Research
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-ai-muted mb-12"
-        >
-          Featured work: Insider Threat Detection
-        </motion.p>
+    <section id="research" className={siteSectionClass()} data-cinematic-reveal>
+      <LabSectionGridBg />
+      <div className={SITE_SECTION_INNER}>
+        <LabSectionIntro
+          eyebrow="Research lab"
+          title="Research"
+          description="Featured work: Insider Threat Detection — hybrid Transformer–LSTM autoencoder with explainability and production-minded metrics."
+          titleClassName="!text-3xl md:!text-5xl"
+        />
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           <motion.div
@@ -120,15 +120,32 @@ export default function ResearchSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-8 glass rounded-2xl p-8 border border-ai-border border-dashed"
+          className="mt-8 glass rounded-2xl p-6 md:p-8 border border-ai-border"
         >
-          <h4 className="text-ai-muted font-mono text-sm uppercase tracking-wider mb-4">
+          <h4 className="text-ai-glow font-mono text-sm uppercase tracking-wider mb-2">
             Architecture Diagram
           </h4>
-          <div className="aspect-video rounded-lg bg-ai-bg/50 border border-ai-border flex items-center justify-center text-ai-muted text-sm">
-            [ Transformer → LSTM Autoencoder → Anomaly Score ]
+          <p className="text-ai-muted text-sm mb-6 max-w-2xl">
+            Hybrid encoder: temporal attention feeds an LSTM autoencoder; anomaly
+            signal combines reconstruction error with attribution paths for analyst
+            review.
+          </p>
+          <div className="w-full min-h-[280px] max-h-[min(70vh,640px)] overflow-x-auto overflow-y-auto touch-pan-x rounded-xl border border-ai-border/50 bg-ai-bg/30 p-4 sm:p-5">
+            <MermaidChart
+              code={researchArchitectureDiagram}
+              instanceId="research-insider-threat"
+              className="!rounded-none !border-0 !bg-transparent !p-0 !min-h-0"
+            />
           </div>
         </motion.div>
+
+        <LabSectionFooterStrip
+          items={[
+            { icon: <Microscope className="h-4 w-4 text-cyan-400" aria-hidden />, label: "model graph" },
+            { icon: <BookOpen className="h-4 w-4 text-violet-400" aria-hidden />, label: "publication" },
+            { icon: <LineChart className="h-4 w-4 text-lime-400" aria-hidden />, label: "metrics board" },
+          ]}
+        />
       </div>
     </section>
   );

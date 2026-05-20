@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 const ROWS = 5;
 const COLS = 6;
@@ -43,6 +44,7 @@ function canReachEnd(grid: boolean[][], start: [number, number]): boolean {
 }
 
 export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const [grid, setGrid] = useState(() => {
     let g = generateMaze();
     while (!canReachEnd(g, START)) g = generateMaze();
@@ -103,9 +105,9 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
               key={i}
               className={`rounded-lg flex items-center justify-center text-lg font-mono touch-manipulation
                 ${blocked ? "bg-red-900/40 border border-red-500/50" : "bg-ai-surface border border-ai-border"}
-                ${isStart ? "bg-ai-glow/20 text-ai-glow" : ""}
-                ${isEnd ? "bg-ai-accent/20 text-ai-accent" : ""}
-                ${isPos ? "ring-2 ring-ai-glow" : ""}`}
+                ${isStart ? `${theme.bg20} ${theme.text}` : ""}
+                ${isEnd ? `${theme.accentBg20} ${theme.accentText}` : ""}
+                ${isPos ? `ring-2 ${theme.ring}` : ""}`}
               style={{ width: cellSize, height: cellSize, minWidth: cellSize, minHeight: cellSize }}
             >
               {isPos ? "●" : isStart ? "S" : isEnd ? "E" : blocked ? "✕" : ""}
@@ -119,7 +121,7 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
           <button
             type="button"
             onClick={() => move(-1, 0)}
-            className="min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border text-ai-glow touch-manipulation flex items-center justify-center active:scale-95 transition-transform"
+            className={`min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border ${theme.text} touch-manipulation flex items-center justify-center active:scale-95 transition-transform`}
           >
             ↑
           </button>
@@ -127,7 +129,7 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
           <button
             type="button"
             onClick={() => move(0, -1)}
-            className="min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border text-ai-glow touch-manipulation flex items-center justify-center active:scale-95 transition-transform"
+            className={`min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border ${theme.text} touch-manipulation flex items-center justify-center active:scale-95 transition-transform`}
           >
             ←
           </button>
@@ -135,7 +137,7 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
           <button
             type="button"
             onClick={() => move(0, 1)}
-            className="min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border text-ai-glow touch-manipulation flex items-center justify-center active:scale-95 transition-transform"
+            className={`min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border ${theme.text} touch-manipulation flex items-center justify-center active:scale-95 transition-transform`}
           >
             →
           </button>
@@ -143,18 +145,18 @@ export default function NeuralMazeGame({ onScore }: { onScore?: (score: number) 
           <button
             type="button"
             onClick={() => move(1, 0)}
-            className="min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border text-ai-glow touch-manipulation flex items-center justify-center active:scale-95 transition-transform"
+            className={`min-w-[48px] min-h-[48px] w-12 h-12 rounded-lg bg-ai-surface border border-ai-border ${theme.text} touch-manipulation flex items-center justify-center active:scale-95 transition-transform`}
           >
             ↓
           </button>
           <div />
         </div>
       )}
-      {won && <p className="text-ai-glow">You reached the output! Score: {Math.max(10, 200 - moves)}</p>}
+      {won && <p className={theme.text}>You reached the output! Score: {Math.max(10, 200 - moves)}</p>}
       <button
         type="button"
         onClick={newMaze}
-        className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation"
+        className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}
       >
         New Maze
       </button>

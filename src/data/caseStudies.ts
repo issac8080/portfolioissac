@@ -15,6 +15,10 @@ export type CaseStudy = {
   github: string | null;
   link: string | null;
   featured?: boolean;
+  /** Quantified or directional outcomes for scanners and ATS-adjacent readers */
+  metrics?: { label: string; value: string }[];
+  /** Inline “review comments” on your own writeup — tradeoffs and hindsight */
+  engineeringNotes?: { label: string; text: string }[];
 };
 
 export const caseStudies: CaseStudy[] = [
@@ -47,6 +51,16 @@ export const caseStudies: CaseStudy[] = [
     github: null,
     link: null,
     featured: true,
+    metrics: [
+      { label: "Trust signal coverage", value: "Server-side score on every completed booking" },
+      { label: "Policy surface", value: "Role-separated JWT + listing gates" },
+    ],
+    engineeringNotes: [
+      {
+        label: "Tradeoff",
+        text: "SQLite keeps the demo portable; production would move to Postgres + idempotent webhooks for payments.",
+      },
+    ],
   },
   {
     id: "aurashop",
@@ -174,6 +188,16 @@ export const caseStudies: CaseStudy[] = [
     github: null,
     link: null,
     featured: true,
+    metrics: [
+      { label: "Decision path", value: "Vision → policy RAG → resolution with audit log" },
+      { label: "Escalation", value: "Explicit low-confidence branch to human review" },
+    ],
+    engineeringNotes: [
+      {
+        label: "If I had another sprint",
+        text: "Add golden-set regression tests on policy retrieval (P@k) and red-team image prompts for VisionAgent.",
+      },
+    ],
   },
   {
     id: "expenze",
@@ -378,6 +402,78 @@ export const caseStudies: CaseStudy[] = [
     github: null,
     link: null,
     featured: false,
+  },
+  {
+    id: "facial-attendance-system",
+    productTitle: "Facial Attendance Marking System",
+    tagline: "AI-Based Classroom Attendance with Face Recognition",
+    category: "Computer Vision",
+    tech: ["Python", "OpenCV", "Face recognition", "Deep learning", "SQLite", "FastAPI"],
+    problemStatement:
+      "Manual attendance is slow, error-prone, and easy to proxy. Programs need a trustworthy, low-friction signal that scales across sections without extra hardware beyond a camera.",
+    systemArchitecture:
+      "Capture pipeline from webcam or batch images; face detection and embedding extraction; matching against enrolled embeddings with configurable thresholds and audit logging. Lightweight API for marking sessions and exports for LMS or CSV.",
+    aiWorkflow:
+      "Detection + alignment + embedding model for identity similarity; fallback to manual review queue when confidence is below threshold; optional liveness hints depending on deployment constraints.",
+    engineeringContribution:
+      "Built end-to-end enrollment, session capture, and verification flows with clear UX for instructors and reproducible evaluation notes.",
+    businessImpact:
+      "Reduces administrative time per session while preserving an auditable trail of checks and overrides.",
+    realWorldUseCase:
+      "Instructor starts a session; students pass in front of the camera; matches are written to the roster with confidence and timestamp for later dispute resolution.",
+    keyFeatures: [
+      "Enrollment and re-enrollment with consent-aware capture",
+      "Session-based attendance with confidence scores",
+      "Export and audit trail for administrators",
+    ],
+    aiMlComponents: ["Face detection", "Embedding similarity", "Thresholded decision policy"],
+    github: null,
+    link: null,
+    featured: false,
+  },
+  {
+    id: "lumos-student-network",
+    productTitle: "Lumos — Student Professional Network",
+    tagline: "Cross-Platform Flutter App for Collaboration, Mentors, and Careers",
+    category: "Mobile & Web",
+    tech: [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "Blockchain",
+      "NFT",
+      "REST APIs",
+      "Material Design 3",
+    ],
+    problemStatement:
+      "Students lack a single place to prove achievements, find mentors, join interest communities, and discover internships without noisy generic social feeds.",
+    systemArchitecture:
+      "Flutter client for iOS/Android with Firebase-backed auth, profiles, groups, messaging primitives, and a jobs board module. NFT-backed certificate verification layer for high-trust credentials. Mentor matching and interest graph for discovery.",
+    aiWorkflow:
+      "Recommendation-style ranking for mentors and roles from profile tags and activity; optional moderation hooks for community safety.",
+    engineeringContribution:
+      "Owned cross-platform UI architecture, navigation, and state management; integrated verification flows and networking surfaces with performance-minded lists and caching.",
+    businessImpact:
+      "Improves student employability signals and peer collaboration density on campus programs piloting the app.",
+    realWorldUseCase:
+      "A student mints a verified workshop certificate, joins a robotics interest group, messages a mentor, and applies to an internship listing — all inside Lumos.",
+    keyFeatures: [
+      "Blockchain-integrated NFT certificate verification",
+      "Student networking and collaboration",
+      "Interest-based groups and communities",
+      "Mentor connection system",
+      "Job and internship portal",
+      "Cross-platform Flutter application",
+      "Modern, accessible UI",
+    ],
+    aiMlComponents: ["Tag-based discovery", "Lightweight recommendation heuristics for mentors/jobs"],
+    github: null,
+    link: null,
+    featured: false,
+    metrics: [
+      { label: "Build window", value: "Mar 2024 – Jun 2024" },
+      { label: "Platform", value: "Flutter · Firebase · Web3 verify" },
+    ],
   },
 ];
 

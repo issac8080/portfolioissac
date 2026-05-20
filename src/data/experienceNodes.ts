@@ -51,14 +51,16 @@ export const experienceNodes: ExperienceNode[] = [
   },
   {
     id: "ieee-chair",
-    role: "Chair",
-    organization: "IEEE Computer Society",
-    period: "March 2023 - March 2024",
-    duration: "1 year 1 month",
+    role: "IEEE Computer Society Chairman",
+    organization: "Christ College of Engineering",
+    period: "2022 – 2024",
+    duration: "2 years",
     location: "Irinjalakuda, Kerala, India",
-    contribution: "Led the student chapter: events, collaborations, and knowledge sharing for technology enthusiasts.",
-    impact: "Grew community engagement and fostered innovation and professional growth among members.",
-    technologies: ["Leadership", "Event Management", "Community Building", "Technical Talks"],
+    contribution:
+      "Led IEEE Computer Society programs: CTF 2024, AI/ML and cybersecurity webinars, React/Firebase workshop, and cloud/DevOps fundamentals — from scoping and sponsors to live labs and judging.",
+    impact:
+      "Grew technical participation across cohorts; strengthened secure-engineering awareness and practical build skills aligned with industry hiring bar.",
+    technologies: ["Leadership", "IEEE", "Event Ops", "Cybersecurity", "Community"],
   },
   {
     id: "ziuke-web",
@@ -84,13 +86,18 @@ export const experienceNodes: ExperienceNode[] = [
   },
 ];
 
-/** Edges for SVG connection lines: [fromIndex, toIndex] */
+/**
+ * Edges for the career graph (indices match `experienceNodes` order):
+ * 0 G10X · 1 White Matrix · 2 CodSoft · 3 IEEE · 4 ZIUKE · 5 ICT
+ *
+ * Meaning: ML thread (2→1→0), web thread (5→4→0), leadership→core (3→1),
+ * concurrent AI + web (1↔4).
+ */
 export const experienceEdges: [number, number][] = [
-  [0, 1],
-  [1, 2],
-  [1, 4],
-  [2, 4],
+  [2, 1],
+  [1, 0],
+  [5, 4],
+  [4, 0],
   [3, 1],
-  [3, 4],
-  [4, 5],
+  [1, 4],
 ];

@@ -5,9 +5,11 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { GameId } from "@/data/gamesData";
+import { GameThemeProvider, getGameCardTheme } from "./gameTheme";
 
-const GAME_MODAL_CONTENT_CLASS =
-  "w-full h-full max-w-4xl max-h-[90vh] min-h-[min(90vh,400px)] overflow-hidden flex flex-col glass rounded-2xl border border-ai-border shadow-2xl";
+function modalShellClass(cardBorder: string) {
+  return `w-full h-full max-w-4xl max-h-[90vh] min-h-[min(90vh,400px)] overflow-hidden flex flex-col glass rounded-2xl border ${cardBorder} shadow-2xl`;
+}
 
 export default function GameModal({
   gameId,
@@ -37,6 +39,8 @@ export default function GameModal({
 
   if (!gameId) return null;
 
+  const theme = getGameCardTheme(gameId);
+
   const modalContent = (
     <AnimatePresence mode="wait">
       <motion.div
@@ -63,19 +67,22 @@ export default function GameModal({
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", damping: 28, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className={`relative ${GAME_MODAL_CONTENT_CLASS}`}
+          className={`relative ${modalShellClass(theme.cardBorder)}`}
+          data-lenis-prevent-wheel
         >
-          <div className="flex items-center justify-end gap-2 p-3 border-b border-ai-border bg-ai-bg/95 backdrop-blur-md shrink-0 rounded-t-2xl min-h-[52px]">
+          <div
+            className={`flex items-center justify-end gap-2 p-3 border-b ${theme.modalBarBorder} bg-ai-bg/95 backdrop-blur-md shrink-0 rounded-t-2xl min-h-[52px]`}
+          >
             <button
               onClick={onClose}
-              className="min-w-[44px] min-h-[44px] p-2 rounded-lg text-ai-muted hover:text-white hover:bg-ai-glow/10 active:bg-ai-glow/20 transition-colors touch-manipulation flex items-center justify-center"
+              className={`min-w-[44px] min-h-[44px] p-2 rounded-lg text-ai-muted hover:text-white ${theme.modalCloseHover} transition-colors touch-manipulation flex items-center justify-center`}
               aria-label="Close game"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start sm:justify-center p-4 pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
-            {children}
+            <GameThemeProvider gameId={gameId}>{children}</GameThemeProvider>
           </div>
         </motion.div>
       </motion.div>

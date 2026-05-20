@@ -22,5 +22,120 @@
     {"id": "r1", "text": "Research on Behavioral Insider Threat Detection using a Hybrid Transformer-LSTM Autoencoder Architecture with Enhanced Explainability and Scalability. Author Issac Sunny. Associate Salesforce at G10X. Thrissur, Kerala. Combines Transformer and LSTM for anomaly detection and explainability.", "category": "research", "source": "Behavioral Insider Threat Detection"},
     {"id": "s1", "text": "Top skills include Salesforce Training, Salesforce.com Development, and Apex Programming. Python, Machine Learning, TensorFlow for ML. Apex and Salesforce for enterprise. MERN Stack and Cloud Computing. Full-stack and AI engineering.", "category": "skills", "source": "Skills"},
     {"id": "s2", "text": "Technologies: Python, Machine Learning, TensorFlow, Apex, Salesforce Development, MERN Stack, React, Node.js, MongoDB, Cloud Computing. Certifications in Python and TensorFlow, Conversational AI, and Cloud Computing.", "category": "skills", "source": "Skills"}
-  ]
+  ],
+  "projectIntelligence": {
+    "Urban Place": {
+      "caseStudyId": "urban-place",
+      "demoHint": "Open the Urban Place case study modal for full architecture narrative and metrics.",
+      "architectureMermaid": "flowchart TB\n  subgraph Client[\"Next.js Client\"]\n    UI[Tailwind UI]\n    AUTH[JWT Session]\n  end\n  subgraph API[\"FastAPI Core\"]\n    ORM[SQLAlchemy]\n    POL[Policy Engine]\n    TRUST[Trust Score]\n    BOOK[Booking + Commission]\n  end\n  subgraph AI[\"AI Services\"]\n    IDV[Identity Verification]\n    TUT[Tutor Qualification]\n  end\n  UI --> API\n  API --> ORM\n  POL --> BOOK\n  TRUST --> POL\n  IDV --> POL\n  TUT --> POL",
+      "sections": {
+        "dataFlow": [
+          "Provider onboarding triggers document capture → AI extraction → policy gate.",
+          "Booking events append to ledger; trust score recomputed on completion/cancel.",
+          "Discovery reads trust + policy flags before ranking tutors."
+        ],
+        "deployment": [
+          "Portable SQLite for demos; production path: Postgres + object storage for documents.",
+          "JWT-secured API tier; separate admin vs provider roles."
+        ],
+        "apis": [
+          "REST-style FastAPI routes for auth, listings, bookings, payouts metadata.",
+          "Internal scoring endpoints consumed by Next.js server components / client."
+        ],
+        "stack": ["FastAPI", "SQLAlchemy", "SQLite", "Next.js", "TailwindCSS", "JWT", "OpenAI API"],
+        "decisions": [
+          "Policy engine centralizes listing eligibility instead of scattering checks.",
+          "Trust score computed server-side to prevent client tampering."
+        ],
+        "scalability": [
+          "Shard booking writes by region; cache hot discovery slices at edge.",
+          "Move verification to async workers when OCR/LLM latency grows."
+        ],
+        "challenges": [
+          "Balancing tutor throughput vs strict qualification thresholds.",
+          "Keeping commission state machine idempotent across retries."
+        ],
+        "performance": [
+          {"label": "Trust refresh", "value": "On booking terminal states"},
+          {"label": "Policy surface", "value": "JWT + role-separated routes"}
+        ]
+      }
+    },
+    "AuraShop": {
+      "caseStudyId": "aurashop",
+      "demoHint": "Inspect AuraShop in Projects for session→recommendation flow detail.",
+      "architectureMermaid": "flowchart LR\n  N[Next.js 14] --> F[FastAPI]\n  F --> R[Recommendation Engine]\n  F --> C[GPT-4o-mini Chat]\n  F --> S[Session Store]\n  R --> S\n  C --> S\n  F --> Q[QR Pickup Verify]",
+      "sections": {
+        "dataFlow": [
+          "Click/view stream aggregates into session context vector.",
+          "Recommendations ranked with optional reasoning snippets.",
+          "Chat receives product focus + cart for grounded answers."
+        ],
+        "deployment": [
+          "Session store colocated with API for low-latency reads.",
+          "Fallback AI path when upstream model is rate-limited."
+        ],
+        "apis": [
+          "Recommendation POST with session id + catalog slice.",
+          "Chat POST with structured product context.",
+          "Pickup verification endpoint keyed by QR + order id."
+        ],
+        "stack": ["Next.js 14", "FastAPI", "OpenAI API", "Tailwind CSS", "REST"],
+        "decisions": [
+          "Session-first personalization vs cold-start popularity blend.",
+          "Dual-path AI: primary + deterministic fallback for resilience."
+        ],
+        "scalability": [
+          "Partition sessions by user shard; warm cache for trending SKUs.",
+          "Event stream to warehouse for offline re-ranking models."
+        ],
+        "challenges": [
+          "Keeping chat citations aligned with live inventory.",
+          "QR flow sync with in-store POS edge cases."
+        ],
+        "performance": [
+          {"label": "Session aggregation", "value": "Streaming events"},
+          {"label": "Resilience", "value": "Rule-based fallback tier"}
+        ]
+      }
+    },
+    "Autonomous Returns Resolution System": {
+      "caseStudyId": "autonomous-returns",
+      "demoHint": "Multi-agent LangGraph workflow—see case study for agent contracts.",
+      "architectureMermaid": "flowchart TB\n  IMG[Return Images] --> V[Vision Agent]\n  V --> P[Policy Agent + RAG]\n  P --> R[Resolution Agent]\n  R --> C[Communication Agent]\n  P --> CH[(ChromaDB)]\n  P --> M[Embeddings]",
+      "sections": {
+        "dataFlow": [
+          "Vision encodes damage/features → structured claim object.",
+          "Policy agent retrieves clauses via RAG from ChromaDB.",
+          "Resolution agent emits approve/reject/escalate with audit trail.",
+          "Communication agent drafts customer-safe messaging."
+        ],
+        "deployment": [
+          "FastAPI orchestration layer around LangGraph state machine.",
+          "GPU/CPU hybrid: vision calls batched when possible."
+        ],
+        "apis": [
+          "Webhook ingress for carrier/OMS events.",
+          "Internal tool APIs for human review queue."
+        ],
+        "stack": ["FastAPI", "LangGraph", "GPT-4o Vision", "SentenceTransformers", "ChromaDB"],
+        "decisions": [
+          "Explicit agent boundaries for testability vs monolithic prompt.",
+          "RAG on policy corpuses instead of stuffing full policy text."
+        ],
+        "scalability": [
+          "Horizontal workers per queue depth; isolate tenant policy indexes.",
+          "Cache embedding of stable policy sections."
+        ],
+        "challenges": [
+          "Ambiguous photo evidence → calibrated escalation instead of false rejects.",
+          "Latency SLAs when chaining vision + retrieval + generation."
+        ],
+        "performance": [
+          {"label": "Agent stages", "value": "4 specialized agents"},
+          {"label": "Knowledge", "value": "Vector RAG on policies"}
+        ]
+      }
+    }
+  }
 }

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 function randomBits(length: number): number[] {
   return Array.from({ length }, () => (Math.random() < 0.5 ? 0 : 1));
 }
 
 export default function BinaryTapGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const [level, setLevel] = useState(3);
   const [pattern, setPattern] = useState<number[]>(() => randomBits(3));
   const [input, setInput] = useState<number[]>([]);
@@ -50,11 +52,11 @@ export default function BinaryTapGame({ onScore }: { onScore?: (score: number) =
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-      <p className="text-ai-glow font-mono">Level: {level} - Score: {score}</p>
+      <p className={`${theme.text} font-mono`}>Level: {level} - Score: {score}</p>
       <p className="text-ai-muted text-sm">{showPattern ? "Memorize the pattern" : "Tap the same pattern"}</p>
       <div className="flex gap-3 flex-wrap justify-center">
         {pattern.map((b, i) => (
-          <span key={i} className={`w-12 h-12 rounded-lg flex items-center justify-center font-mono text-xl ${showPattern ? "bg-ai-glow/30 text-white" : "bg-ai-surface text-ai-muted"} ${!showPattern && input[i] !== undefined ? (input[i] === b ? "bg-ai-glow/20 text-ai-glow" : "bg-red-500/20 text-red-400") : ""}`}>
+          <span key={i} className={`w-12 h-12 rounded-lg flex items-center justify-center font-mono text-xl ${showPattern ? `${theme.bg30} text-white` : "bg-ai-surface text-ai-muted"} ${!showPattern && input[i] !== undefined ? (input[i] === b ? `${theme.bg20} ${theme.text}` : "bg-red-500/20 text-red-400") : ""}`}>
             {showPattern ? b : input[i] ?? "?"}
           </span>
         ))}
@@ -66,7 +68,7 @@ export default function BinaryTapGame({ onScore }: { onScore?: (score: number) =
         </div>
       )}
       {wrong && <p className="text-red-400">Wrong! Final score: {score}</p>}
-      <button type="button" onClick={reset} className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">Restart</button>
+      <button type="button" onClick={reset} className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>Restart</button>
     </div>
   );
 }

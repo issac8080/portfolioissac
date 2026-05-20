@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 const PAIRS = 8;
 const SYMBOLS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -15,6 +16,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function MemoryMatchGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const [cards] = useState(() => shuffle(SYMBOLS.slice(0, PAIRS).flatMap((e) => [e, e])));
   const [flipped, setFlipped] = useState<number[]>([]);
   const [solved, setSolved] = useState<Set<number>>(new Set());
@@ -55,7 +57,7 @@ export default function MemoryMatchGame({ onScore }: { onScore?: (score: number)
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-md">
-      <p className="text-ai-glow font-mono">Time: {elapsed}s</p>
+      <p className={`${theme.text} font-mono`}>Time: {elapsed}s</p>
       <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-[min(95vw,320px)]">
         {cards.map((sym, i) => {
           const isFlipped = flipped.includes(i) || solved.has(i);
@@ -64,15 +66,16 @@ export default function MemoryMatchGame({ onScore }: { onScore?: (score: number)
               key={i}
               type="button"
               onClick={() => tryFlip(i)}
-              className="aspect-square min-w-[56px] min-h-[56px] rounded-lg bg-ai-surface border border-ai-border text-xl sm:text-2xl font-bold flex items-center justify-center touch-manipulation text-white active:scale-95 transition-transform"
+              className={`aspect-square min-w-[56px] min-h-[56px] rounded-lg border text-xl sm:text-2xl font-bold flex items-center justify-center touch-manipulation active:scale-95 transition-transform
+                ${isFlipped ? "bg-ai-surface border-ai-border text-white" : `${theme.bg30} ring-2 ${theme.ring} ${theme.text}`}`}
             >
               {isFlipped ? sym : "?"}
             </button>
           );
         })}
       </div>
-      {done && <p className="text-ai-glow">Done in {elapsed}s!</p>}
-      <button type="button" onClick={reset} className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation">New Game</button>
+      {done && <p className={theme.text}>Done in {elapsed}s!</p>}
+      <button type="button" onClick={reset} className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}>New Game</button>
     </div>
   );
 }

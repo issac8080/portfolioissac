@@ -1,11 +1,67 @@
 export const contact = {
   mobile: "9072185621",
-  email: "issacsunny@icloud.com",
+  email: "issacsunny2024@gmail.com",
   linkedin: "https://www.linkedin.com/in/issac-sunny/",
 };
 
+/** Optional rotating hero lines (used sparingly — primary line is `heroTagline`) */
+export const heroJobTitles = [
+  "AI Engineer",
+  "ML Engineer",
+  "Full-Stack Developer",
+  "Security Analytics Engineer",
+  "Salesforce Associate",
+] as const;
+
+/** Main hero subtitle — pipe-separated like the reference layout */
+export const heroTagline =
+  "AI Engineer | Full-Stack Developer | Problem Solver";
+
 export const skills = {
-  top: ["Salesforce Training", "Salesforce.com Development", "Apex Programming"],
+  top: [
+    "Machine Learning & PyTorch",
+    "Full-Stack Systems (React / Node)",
+    "Python & Data Pipelines",
+    "LangGraph & Agentic Workflows",
+    "Computer Vision & NLP",
+    "Cloud & DevOps fundamentals",
+  ],
+  /** Chips in the Skills section — broad stack (not Salesforce-only) */
+  stackTags: [
+    "Python",
+    "TypeScript",
+    "PyTorch",
+    "TensorFlow",
+    "scikit-learn",
+    "Pandas",
+    "NumPy",
+    "LangGraph",
+    "OpenAI API",
+    "ChromaDB",
+    "RAG",
+    "FastAPI",
+    "Node.js",
+    "React",
+    "Next.js",
+    "Tailwind CSS",
+    "Flutter",
+    "Firebase",
+    "PostgreSQL",
+    "SQLite",
+    "MongoDB",
+    "Redis",
+    "Docker",
+    "Git",
+    "GitHub Actions",
+    "REST APIs",
+    "WebSockets",
+    "OpenCV",
+    "Transformers",
+    "MLOps",
+    "Salesforce",
+    "Apex",
+    "LWC",
+  ],
   languages: [
     { name: "Malayalam", level: "Native or Bilingual" },
     { name: "English", level: "Native or Bilingual" },
@@ -89,13 +145,22 @@ export const experience = [
     description: null,
   },
   {
-    company: "IEEE Computer Society",
-    role: "Chair",
-    period: "March 2023 - March 2024",
-    duration: "1 year 1 month",
+    company: "Christ College of Engineering",
+    role: "IEEE Computer Society Chairman",
+    period: "2022 – 2024",
+    duration: "2 years",
     location: "Irinjalakuda, Kerala, India",
     description:
-      "Led a thriving community of technology enthusiasts, fostering innovation and professional growth. Impactful events and collaborations, knowledge sharing and networking.",
+      "Led IEEE Computer Society chapter programs: CTF 2024, technical webinars, workshops, and student outreach across AI, security, and web engineering.",
+  },
+  {
+    company: "Beach Hack",
+    role: "Fundraising Volunteer",
+    period: "November 2022 - December 2022",
+    duration: "2 months",
+    location: "Kerala, India",
+    description:
+      "Raised ₹15,000 through community contributions and local sponsorships to support participant resources, logistics, and event execution.",
   },
   {
     company: "Internshala",
@@ -301,15 +366,45 @@ export const projects: Project[] = [
     github: null,
     link: null,
   },
+  {
+    id: "facial-attendance-system",
+    title: "Facial Attendance Marking System",
+    subtitle: "AI attendance with face recognition",
+    category: "Computer Vision",
+    description:
+      "AI-based attendance marking using facial recognition with enrollment, session capture, confidence scoring, and export for administrators.",
+    tech: ["Python", "OpenCV", "Deep learning", "FastAPI"],
+    github: null,
+    link: null,
+  },
+  {
+    id: "lumos-student-network",
+    title: "Lumos — Student professional network",
+    subtitle: "Mar 2024 – Jun 2024 · Flutter & Firebase",
+    category: "Mobile & Web",
+    description:
+      "Professional social platform for students: NFT-backed certificate verification, mentors, interest groups, jobs portal, and cross-platform Flutter UX.",
+    tech: ["Flutter", "Firebase", "Blockchain", "NFT", "REST APIs"],
+    github: null,
+    link: null,
+  },
 ];
 
 export const leadership = [
   {
-    org: "IEEE Computer Society",
-    role: "Chair",
-    period: "March 2023 - March 2024",
+    org: "Christ College of Engineering",
+    role: "IEEE Computer Society Chairman",
+    period: "2022 – 2024",
     location: "Irinjalakuda, Kerala, India",
     description:
-      "Led the community of technology enthusiasts, fostering innovation and professional growth. Drove strategic direction and empowered members in computer science.",
+      "Directed the IEEE Computer Society student chapter technical roadmap — CTF 2024, AI/ML and cybersecurity webinars, hands-on React/Firebase and cloud/DevOps sessions, plus statewide competition participation.",
+  },
+  {
+    org: "IEEE Computer Society chapter",
+    role: "Technical programs & competitions",
+    period: "2022 – 2024",
+    location: "Campus + statewide",
+    description:
+      "Owned run-of-show for CTF 2024, recurring webinars, and workshop tracks — from sponsor outreach and budgets to lab content, judging, and participant onboarding.",
   },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 type Cell = "X" | "O" | null;
 
@@ -50,6 +51,7 @@ function aiMove(board: Cell[]): number {
 }
 
 export default function TicTacToeGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const [board, setBoard] = useState<Cell[]>(() => Array(9).fill(null));
   const [xTurn, setXTurn] = useState(true);
 
@@ -99,7 +101,8 @@ export default function TicTacToeGame({ onScore }: { onScore?: (score: number) =
             key={i}
             type="button"
             onClick={() => makeMove(i)}
-            className="min-w-[64px] min-h-[64px] w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-ai-surface border border-ai-border text-2xl font-bold text-white touch-manipulation flex items-center justify-center active:scale-95 transition-transform"
+            className={`min-w-[64px] min-h-[64px] w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-ai-surface border border-ai-border text-2xl font-bold touch-manipulation flex items-center justify-center active:scale-95 transition-transform
+              ${cell === "X" ? theme.text : cell === "O" ? theme.accentText : "text-white"}`}
           >
             {cell ?? ""}
           </button>
@@ -108,7 +111,7 @@ export default function TicTacToeGame({ onScore }: { onScore?: (score: number) =
       <button
         type="button"
         onClick={reset}
-        className="px-6 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation"
+        className={`px-6 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation`}
       >
         Reset
       </button>

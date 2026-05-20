@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useGameUiTheme } from "../gameTheme";
 
 const N = 9;
 const BOX = 3;
@@ -54,6 +55,7 @@ function generatePuzzle(): { grid: number[][]; solution: number[][] } {
 }
 
 export default function SudokuGame({ onScore }: { onScore?: (score: number) => void }) {
+  const theme = useGameUiTheme();
   const initial = useMemo(() => generatePuzzle(), []);
   const [grid, setGrid] = useState(() => initial.grid.map((row) => [...row]));
   const [solution, setSolution] = useState(() => initial.solution.map((row) => [...row]));
@@ -107,7 +109,7 @@ export default function SudokuGame({ onScore }: { onScore?: (score: number) => v
         <button
           type="button"
           onClick={newPuzzle}
-          className="px-4 py-2 rounded-lg bg-ai-glow/20 text-ai-glow touch-manipulation text-sm"
+          className={`px-4 py-2 rounded-lg ${theme.bg20} ${theme.text} touch-manipulation text-sm`}
         >
           New Puzzle
         </button>
@@ -134,7 +136,7 @@ export default function SudokuGame({ onScore }: { onScore?: (score: number) => v
               className={`border border-ai-border/50 flex items-center justify-center text-lg font-mono touch-manipulation
                 ${(c + 1) % 3 === 0 && c < 8 ? "border-r-2 border-ai-border" : ""}
                 ${(r + 1) % 3 === 0 && r < 8 ? "border-b-2 border-ai-border" : ""}
-                ${isSelected ? "bg-ai-glow/20 text-ai-glow" : "text-white"}
+                ${isSelected ? `${theme.bg20} ${theme.text}` : "text-white"}
                 ${isFixed ? "text-ai-muted" : ""}
                 ${isWrong ? "bg-red-500/20 text-red-400" : ""}`}
               style={{ width: cellSize, height: cellSize, minWidth: cellSize, minHeight: cellSize }}
@@ -164,7 +166,7 @@ export default function SudokuGame({ onScore }: { onScore?: (score: number) => v
         Clear
       </button>
       {solved && (
-        <p className="text-ai-glow font-semibold">Solved! Score: {Math.max(0, 100 - mistakes * 10)}</p>
+        <p className={`${theme.text} font-semibold`}>Solved! Score: {Math.max(0, 100 - mistakes * 10)}</p>
       )}
     </div>
   );

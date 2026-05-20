@@ -9,13 +9,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "480px",
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
       colors: {
         ai: {
           bg: "#0a0a0f",
           surface: "rgba(15, 15, 25, 0.7)",
-          border: "rgba(0, 255, 136, 0.2)",
-          glow: "#00ff88",
-          accent: "#00d4ff",
+          border: "rgba(125, 211, 252, 0.22)",
+          glow: "#38f9d7",
+          accent: "#7dd3fc",
+          violet: "#c4b5fd",
+          magenta: "#f0abfc",
+          amber: "#fcd34d",
+          rose: "#fda4af",
           muted: "#6b7280",
         },
       },
@@ -30,8 +39,16 @@ const config: Config = {
       },
       keyframes: {
         "glow-pulse": {
-          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px rgba(0, 255, 136, 0.3)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 40px rgba(0, 255, 136, 0.5)" },
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow:
+              "0 0 18px rgba(56, 249, 215, 0.28), 0 0 36px rgba(196, 181, 253, 0.18), 0 0 24px rgba(125, 211, 252, 0.15)",
+          },
+          "50%": {
+            opacity: "0.88",
+            boxShadow:
+              "0 0 28px rgba(56, 249, 215, 0.4), 0 0 48px rgba(240, 171, 252, 0.22), 0 0 32px rgba(125, 211, 252, 0.2)",
+          },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
